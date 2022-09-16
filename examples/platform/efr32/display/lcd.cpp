@@ -60,6 +60,7 @@ CHIP_ERROR SilabsLCD::Init(uint8_t * name, bool initialState)
         }
     }
 
+#ifndef CCP_SI917_BRINGUP
     /* Enable the memory lcd */
     status = sl_board_enable_display();
     if (status != SL_STATUS_OK)
@@ -67,6 +68,7 @@ CHIP_ERROR SilabsLCD::Init(uint8_t * name, bool initialState)
         EFR32_LOG("Board Display enable fail %d", status);
         err = CHIP_ERROR_INTERNAL;
     }
+#endif /* CCP_SI917_BRINGUP */
 
     /* Initialize the DMD module for the DISPLAY device driver. */
     status = DMD_init(0);

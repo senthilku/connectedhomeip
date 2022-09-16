@@ -185,7 +185,9 @@ inline BLEManagerImpl & BLEMgrImpl(void)
 
 inline BleLayer * BLEManagerImpl::_GetBleLayer()
 {
+#ifndef CCP_SI917_BRINGUP
     return this;
+#endif /* CCP_SI917_BRINGUP */    
 }
 
 inline bool BLEManagerImpl::_IsAdvertisingEnabled(void)

@@ -108,7 +108,7 @@ extern "C" {
 #include <stdint.h>
 
 #include "RTE_Components.h"
-#include CMSIS_device_header
+//#include CMSIS_device_header //senthil
 
 #include "em_assert.h"
 #include "em_device.h"

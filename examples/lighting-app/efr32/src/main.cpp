@@ -44,12 +44,16 @@ using namespace ::chip::Credentials;
 volatile int apperror_cnt;
 static chip::DeviceLayer::DeviceInfoProviderImpl gExampleDeviceInfoProvider;
 
+int a[10] = {100, 200, 300,66,77,88};
+
 // ================================================================================
 // Main Code
 // ================================================================================
 int main(void)
 {
+#ifndef CCP_SI917_BRINGUP
     init_efrPlatform();
+#endif /* CCP_SI917_BRINGUP */
     if (EFR32MatterConfig::InitMatter(BLE_DEV_NAME) != CHIP_NO_ERROR)
         appError(CHIP_ERROR_INTERNAL);
 
@@ -70,15 +74,18 @@ int main(void)
         appError(CHIP_ERROR_INTERNAL);
 
     EFR32_LOG("Starting FreeRTOS scheduler");
+#ifndef CCP_SI917_BRINGUP	
     sl_system_kernel_start();
-
+#endif /* CCP_SI917_BRINGUP */
     // Should never get here.
     chip::Platform::MemoryShutdown();
     EFR32_LOG("vTaskStartScheduler() failed");
     appError(CHIP_ERROR_INTERNAL);
 }
 
+#ifndef CCP_SI917_BRINGUP
 void sl_button_on_change(const sl_button_t * handle)
 {
     AppTask::GetAppTask().ButtonEventHandler(handle, sl_button_get_state(handle));
 }
+#endif /* CCP_SI917_BRINGUP */

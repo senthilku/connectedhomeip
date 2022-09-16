@@ -111,9 +111,12 @@ if (chip_enable_wifi) {
   ]
 
   if (use_rs911x) {
+    #wiseconnect_sdk_root =
+        #"${chip_root}/third_party/silabs/wiseconnect-wifi-bt-sdk"
     wiseconnect_sdk_root =
-        "${chip_root}/third_party/silabs/wiseconnect-wifi-bt-sdk"
-    import("${wifi_sdk_dir}/rs911x/rs911x.gni")
+        "${chip_root}/third_party/silabs/wisemcu-wifi-bt-sdk"
+    #import("${wifi_sdk_dir}/rs911x/rs911x.gni")
+    import("${wifi_sdk_dir}/rs917/rs917.gni")
   } else {
     import("${wifi_sdk_dir}/wf200/wf200.gni")
   }
@@ -189,6 +192,14 @@ efr32_executable("lighting_app") {
     "src/LightingManager.cpp",
     "src/ZclCallbacks.cpp",
     "src/main.cpp",
+
+    ###### Crypto APP'S #######
+    #"src/rsi_aes_app.c",
+    #"src/rsi_sha_app.c",
+    #"src/rsi_exp_dh_app.c",
+    #"src/rsi_ecdh_app.c",
+    #"src/rsi_hmac_sha_app.c",
+    #"src/rsi_rng_example.c",
   ]
 
   if (chip_enable_pw_rpc || chip_build_libshell || enable_openthread_cli ||

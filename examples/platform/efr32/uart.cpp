@@ -47,7 +47,9 @@ extern "C" {
 #ifdef EFR32MG24
 #define HELPER1(x) EUSART##x##_RX_IRQn
 #else
+#ifndef CCP_SI917_BRINGUP
 #define HELPER1(x) USART##x##_RX_IRQn
+#endif /* CCP_SI917_BRINGUP */
 #endif
 
 #define HELPER2(x) HELPER1(x)
@@ -66,7 +68,9 @@ extern "C" {
 #define USART_IRQHandler HELPER4(SL_UARTDRV_EUSART_VCOM_PERIPHERAL_NO)
 #define vcom_handle sl_uartdrv_eusart_vcom_handle
 #else
+#ifndef CCP_SI917_BRINGUP
 #define USART_IRQ HELPER2(SL_UARTDRV_USART_VCOM_PERIPHERAL_NO)
+#endif /* CCP_SI917_BRINGUP */
 #define USART_IRQHandler HELPER4(SL_UARTDRV_USART_VCOM_PERIPHERAL_NO)
 #define vcom_handle sl_uartdrv_usart_vcom_handle
 #endif // EFR32MG24
@@ -217,9 +221,11 @@ void uartConsoleInit(void)
     UARTDRV_Receive(vcom_handle, sRxDmaBuffer, MAX_DMA_BUFFER_SIZE, UART_rx_callback);
     UARTDRV_Receive(vcom_handle, sRxDmaBuffer2, MAX_DMA_BUFFER_SIZE, UART_rx_callback);
 
+#ifndef CCP_SI917_BRINGUP
     // Enable USART0/EUSART0 interrupt to wake OT task when data arrives
     NVIC_ClearPendingIRQ(USART_IRQ);
     NVIC_EnableIRQ(USART_IRQ);
+#endif /* CCP_SI917_BRINGUP */
 
 #ifdef EFR32MG24
     // Clear previous RX interrupts

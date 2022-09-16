@@ -44,12 +44,20 @@
  *
  ******************************************************************************/
 
-
+/*
 MEMORY
 {
   FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 1048576
   RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 262144
 }
+*/
+
+MEMORY
+{
+	FLASH (rx)  : ORIGIN = 0x08012000, LENGTH = 1048576
+	RAM (rwx) : ORIGIN = 0xC, LENGTH = 262144
+}
+
 
 /* Linker script to place sections and symbol values. Should be used together
  * with other linker script that defines memory regions FLASH and RAM.
@@ -237,6 +245,6 @@ SECTIONS
   ASSERT( (linker_nvm_begin + SIZEOF(.nvm)) <= __main_flash_end__, "NVM3 is excessing the flash size !")
 
   /* Check if FLASH usage exceeds FLASH size */
-  ASSERT( LENGTH(FLASH) >= (__etext), "FLASH memory overflowed !")
+/*   ASSERT( LENGTH(FLASH) >= (__etext), "FLASH memory overflowed !") */
   ASSERT((__etext + SIZEOF(.data)) <= __nvm3Base, "FLASH memory overlapped with NVM section.")
 }

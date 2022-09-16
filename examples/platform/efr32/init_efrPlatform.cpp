@@ -60,8 +60,10 @@ void initAntenna(void);
 
 void init_efrPlatform(void)
 {
+#ifndef CCP_SI917_BRINGUP
     sl_system_init();
     sl_mbedtls_init();
+#endif /* CCP_SI917_BRINGUP */
 
 #if EFR32_LOG_ENABLED
     efr32InitLog();
