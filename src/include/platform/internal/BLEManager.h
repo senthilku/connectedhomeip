@@ -28,6 +28,7 @@
 #include <platform/ConnectivityManager.h>
 
 #if CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
+#define CCP_SI917_BRINGUP 1
 
 namespace chip {
 namespace DeviceLayer {
@@ -113,7 +114,8 @@ namespace Internal {
 inline CHIP_ERROR BLEManager::Init()
 {
 #ifndef CCP_SI917_BRINGUP
-    return static_cast<ImplClass *>(this)->_Init();
+    //return static_cast<ImplClass *>(this)->_Init();
+    return CHIP_NO_ERROR;
 #endif /* CCP_SI917_BRINGUP */
 }
 
