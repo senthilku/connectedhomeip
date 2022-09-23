@@ -11,14 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import("//build_overrides/chip.gni")
-import("//build_overrides/pigweed.gni")
 
-efr32_sdk_target = get_label_info(":sdk", "label_no_toolchain")
-chip_enable_openthread = false
-import("${chip_root}/src/platform/Silabs/EFR32/wifi_args.gni")
+import("si_board.gni")
 
-chip_enable_ota_requestor = true
-
-pw_log_BACKEND = "${chip_root}/src/lib/support/pw_log_chip"
-pw_assert_BACKEND = "$dir_pw_assert_log:check_backend"
+if (si_family == "si917") {
+  arm_arch = "armv7e-m"
+  arm_abi = "aapcs"
+  arm_cpu = "cortex-m4"
+  arm_float_abi = "softfp"
+  arm_fpu = "fpv4-sp-d16"
+}

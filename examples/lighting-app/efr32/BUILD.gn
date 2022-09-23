@@ -32,7 +32,7 @@ if (chip_enable_pw_rpc) {
 assert(current_os == "freertos")
 
 efr32_project_dir = "${chip_root}/examples/lighting-app/efr32"
-examples_plat_dir = "${chip_root}/examples/platform/efr32"
+examples_plat_dir = "${chip_root}/examples/platform/silabs/efr32"
 
 declare_args() {
   # Dump memory usage at link time.
@@ -111,12 +111,12 @@ if (chip_enable_wifi) {
   ]
 
   if (use_rs911x) {
-    #wiseconnect_sdk_root =
-        #"${chip_root}/third_party/silabs/wiseconnect-wifi-bt-sdk"
     wiseconnect_sdk_root =
-        "${chip_root}/third_party/silabs/wisemcu-wifi-bt-sdk"
-    #import("${wifi_sdk_dir}/rs911x/rs911x.gni")
-    import("${wifi_sdk_dir}/rs917/rs917.gni")
+        "${chip_root}/third_party/silabs/wiseconnect-wifi-bt-sdk"
+    #wiseconnect_sdk_root =
+        #"${chip_root}/third_party/silabs/wisemcu-wifi-bt-sdk"
+    import("${wifi_sdk_dir}/rs911x/rs911x.gni")
+    #import("${wifi_sdk_dir}/rs917/rs917.gni")
   } else {
     import("${wifi_sdk_dir}/wf200/wf200.gni")
   }
@@ -129,7 +129,7 @@ efr32_sdk("sdk") {
   ]
 
   include_dirs = [
-    "${chip_root}/src/platform/EFR32",
+    "${chip_root}/src/platform/Silabs/EFR32",
     "${efr32_project_dir}/include",
     "${examples_plat_dir}",
     "${chip_root}/src/lib",

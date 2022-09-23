@@ -28,7 +28,6 @@
 #include <platform/ConnectivityManager.h>
 
 #if CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
-#define CCP_SI917_BRINGUP 1
 
 namespace chip {
 namespace DeviceLayer {
@@ -113,10 +112,7 @@ namespace Internal {
 
 inline CHIP_ERROR BLEManager::Init()
 {
-#ifndef CCP_SI917_BRINGUP
-    //return static_cast<ImplClass *>(this)->_Init();
-    return CHIP_NO_ERROR;
-#endif /* CCP_SI917_BRINGUP */
+    return static_cast<ImplClass *>(this)->_Init();
 }
 
 inline void BLEManager::Shutdown()
@@ -134,9 +130,7 @@ inline bool BLEManager::IsAdvertisingEnabled()
 
 inline CHIP_ERROR BLEManager::SetAdvertisingEnabled(bool val)
 {
-#ifndef CCP_SI917_BRINGUP
     return static_cast<ImplClass *>(this)->_SetAdvertisingEnabled(val);
-#endif /* CCP_SI917_BRINGUP */
 }
 
 inline bool BLEManager::IsAdvertising()
@@ -146,9 +140,7 @@ inline bool BLEManager::IsAdvertising()
 
 inline CHIP_ERROR BLEManager::SetAdvertisingMode(BLEAdvertisingMode mode)
 {
-#ifndef CCP_SI917_BRINGUP
     return static_cast<ImplClass *>(this)->_SetAdvertisingMode(mode);
-#endif /* CCP_SI917_BRINGUP */
 }
 
 inline CHIP_ERROR BLEManager::GetDeviceName(char * buf, size_t bufSize)
@@ -158,23 +150,17 @@ inline CHIP_ERROR BLEManager::GetDeviceName(char * buf, size_t bufSize)
 
 inline CHIP_ERROR BLEManager::SetDeviceName(const char * deviceName)
 {
-#ifndef CCP_SI917_BRINGUP
     return static_cast<ImplClass *>(this)->_SetDeviceName(deviceName);
-#endif /* CCP_SI917_BRINGUP */	
 }
 
 inline uint16_t BLEManager::NumConnections()
 {
-#ifndef CCP_SI917_BRINGUP
     return static_cast<ImplClass *>(this)->_NumConnections();
-#endif /* CCP_SI917_BRINGUP */	
 }
 
 inline void BLEManager::OnPlatformEvent(const ChipDeviceEvent * event)
 {
-#ifndef CCP_SI917_BRINGUP
     return static_cast<ImplClass *>(this)->_OnPlatformEvent(event);
-#endif /* CCP_SI917_BRINGUP */
 }
 
 inline chip::Ble::BleLayer * BLEManager::GetBleLayer()
