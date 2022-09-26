@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2021 Project CHIP Authors
+ *    Copyright (c) 2020 Project CHIP Authors
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,17 +19,12 @@
 
 #pragma once
 
-#include <app/clusters/ota-requestor/BDXDownloader.h>
-#include <app/clusters/ota-requestor/DefaultOTARequestor.h>
-#include <app/clusters/ota-requestor/DefaultOTARequestorDriver.h>
-#include <app/clusters/ota-requestor/DefaultOTARequestorStorage.h>
-#include <platform/Silabs/EFR32/OTAImageProcessorImpl.h>
+#include "efr32_utils.h"
 
-class OTAConfig
-{
-public:
-    OTAConfig(){};
+// ---- Lighting Example App Config ----
 
-    static void Init();
-    static constexpr uint32_t kInitOTARequestorDelaySec = 3;
-};
+#define APP_TASK_NAME "Lit"
+
+// Time it takes in ms for the simulated actuator to move from one
+// state to another.
+#define ACTUATOR_MOVEMENT_PERIOS_MS 10

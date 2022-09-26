@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2021 Project CHIP Authors
+ *    Copyright (c) 2020 Project CHIP Authors
+ *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,17 +19,37 @@
 
 #pragma once
 
-#include <app/clusters/ota-requestor/BDXDownloader.h>
-#include <app/clusters/ota-requestor/DefaultOTARequestor.h>
-#include <app/clusters/ota-requestor/DefaultOTARequestorDriver.h>
-#include <app/clusters/ota-requestor/DefaultOTARequestorStorage.h>
-#include <platform/Silabs/EFR32/OTAImageProcessorImpl.h>
+struct AppEvent;
+typedef void (*EventHandler)(AppEvent *);
 
-class OTAConfig
+struct AppEvent
 {
-public:
-    OTAConfig(){};
+    enum AppEventTypes
+    {
+        kEventType_Button = 0,
+        kEventType_Timer,
+        kEventType_Light,
+        kEventType_Install,
+    };
 
-    static void Init();
-    static constexpr uint32_t kInitOTARequestorDelaySec = 3;
+    uint16_t Type;
+
+    union
+    {
+        struct
+        {
+            uint8_t Action;
+        } ButtonEvent;
+        struct
+        {
+            void * Context;
+        } TimerEvent;
+        struct
+        {
+            uint8_t Action;
+            int32_t Actor;
+        } LightEvent;
+    };
+
+    EventHandler Handler;
 };
