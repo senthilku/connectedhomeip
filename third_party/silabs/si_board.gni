@@ -21,17 +21,11 @@ if (si_board == "") {
   si_board = getenv("si_BOARD")
 }
 
-assert(si_board != "", "si_board must be specified")
 
 board_defines = []
 
-if (si_board == "BRD4325A") {
+  si_board = "BRD4325A"
   si_family = "si917"
   si_mcu = "EFR32MG12P432F1024GM48"
   enable_fem = true
   board_defines += [ "PAL_RTCC_CLOCK_LFRCO" ]
-} else {
-  print(
-      "Please provide a valid value for SI_BOARD env variable (currently supported BRD4325A)")
-  assert(false, "The board ${si_board} is unsupported")
-}

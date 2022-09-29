@@ -135,8 +135,8 @@ template("efr32_sdk") {
       "${efr32_sdk_root}/util/third_party/crypto/sl_component/se_manager/src/",
       "${efr32_sdk_root}/util/third_party/freertos/cmsis/Include",
       "${efr32_sdk_root}/util/third_party/freertos/kernel/include",
-      "${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/config",
-      "${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen",
+      #"${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/config",
+      #"${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen",
       
       "${wiseconnect_sdk_root}/platforms/si91x/core/chip/inc",
       "${wiseconnect_sdk_root}/platforms/si91x/core/config",
@@ -169,8 +169,8 @@ template("efr32_sdk") {
       "CORTEXM3",
       "MICRO=EMBER_MICRO_CORTEXM3_EFR32",
       "PLAT=EMBER_PLATFORM_CORTEXM3",
-      "${efr32_mcu}=1",
-      "${efr32_board}=1",
+      #"${efr32_mcu}=1",
+      #"${efr32_board}=1",
       "SL_SUPRESS_DEPRECATION_WARNINGS_SDK_3_1",
       "__HEAP_SIZE=0",
       "SL_CATALOG_FREERTOS_KERNEL_PRESENT=1",
@@ -483,8 +483,8 @@ template("efr32_sdk") {
       #"${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_board_default_init.c",
       #"${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_device_init_clocks.c",
       #"${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_event_handler.c",
-      "${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_simple_button_instances.c",
-      "${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_simple_led_instances.c",
+      #"${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_simple_button_instances.c",
+      #"${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_simple_led_instances.c",
 
       ######## CCP Platform #########
       "${wiseconnect_sdk_root}/platforms/si91x/boards/brd4325a/src/rsi_board.c",
@@ -539,7 +539,7 @@ template("efr32_sdk") {
         "${efr32_sdk_root}/platform/emlib/src/em_eusart.c",
         "${efr32_sdk_root}/platform/emlib/src/em_leuart.c",
         "${efr32_sdk_root}/platform/emlib/src/em_usart.c",
-        "${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_uartdrv_init.c",
+        #"${sdk_support_root}/matter/efr32/${efr32_family}/${efr32_board}/autogen/sl_uartdrv_init.c",
       ]
 
       if (defined(invoker.use_external_flash) && use_external_flash) {
@@ -567,17 +567,6 @@ template("efr32_sdk") {
       ]
     }
 
-    if (efr32_family == "efr32mg12") {
-      sources += [
-        "${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/startup_efr32mg12p.c",
-        "${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/system_efr32mg12p.c",
-        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_dcdc_s1.c",
-        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_emu_s1.c",
-        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_hfxo_s1.c",
-        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_lfxo_s1.c",
-        "${efr32_sdk_root}/util/third_party/freertos/kernel/portable/GCC/ARM_CM4F/port.c",
-      ]
-    }
 
     public_deps = [
       ":efr32_mbedtls_config",

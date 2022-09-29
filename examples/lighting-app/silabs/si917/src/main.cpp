@@ -28,7 +28,7 @@
 #include <credentials/DeviceAttestationCredsProvider.h>
 #include <matter_config.h>
 #ifdef EFR32_ATTESTATION_CREDENTIALS
-#include <examples/platform/efr32/EFR32DeviceAttestationCreds.h>
+#include <examples/platform/si917/EFR32DeviceAttestationCreds.h>
 #else
 #include <credentials/examples/DeviceAttestationCredsExample.h>
 #endif

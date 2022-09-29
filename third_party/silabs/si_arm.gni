@@ -14,10 +14,8 @@
 
 import("si_board.gni")
 
-if (si_family == "si917") {
   arm_arch = "armv7e-m"
   arm_abi = "aapcs"
   arm_cpu = "cortex-m4"
   arm_float_abi = "softfp"
   arm_fpu = "fpv4-sp-d16"
-}

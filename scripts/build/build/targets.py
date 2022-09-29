@@ -408,6 +408,8 @@ def Efr32Targets():
             'only user requested'),
         efr_target.Extend('brd4304a', board=Efr32Board.BRD4304A).GlobBlacklist(
             'only user requested')
+        efr_target.Extend('brd4325a', board=Efr32Board.BRD4325A).GlobBlacklist(
+            'only user requested')
     ]
 
     builder = VariantBuilder()
