@@ -31,7 +31,7 @@ if (chip_enable_pw_rpc) {
 
 assert(current_os == "freertos")
 
-efr32_project_dir = "${chip_root}/examples/lighting-app/silabs/si917"
+si917_project_dir = "${chip_root}/examples/lighting-app/silabs/si917"
 examples_plat_dir = "${chip_root}/examples/platform/silabs/si917"
 
 declare_args() {
@@ -104,15 +104,15 @@ if (chip_enable_wifi) {
     #import("${wifi_sdk_dir}/rs911x/rs911x.gni")
     import("${wifi_sdk_dir}/rs917/rs917.gni")
 
-efr32_sdk("sdk") {
+si_sdk("sdk") {
   sources = [
-    "${efr32_project_dir}/include/CHIPProjectConfig.h",
+    "${si917_project_dir}/include/CHIPProjectConfig.h",
     "${examples_plat_dir}/FreeRTOSConfig.h",
   ]
 
   include_dirs = [
     "${chip_root}/src/platform/Silabs/Si917",
-    "${efr32_project_dir}/include",
+    "${si917_project_dir}/include",
     "${examples_plat_dir}",
     "${chip_root}/src/lib",
   ]
@@ -158,7 +158,8 @@ efr32_sdk("sdk") {
   }
 }
 
-  output_name = "chip-efr32-lighting-example.out"
+si_executable("lighting_app") {
+  output_name = "chip-si917-lighting-example.out"
   include_dirs = [ "include" ]
   defines = []
 
@@ -174,17 +175,17 @@ efr32_sdk("sdk") {
     "src/ZclCallbacks.cpp",
     "src/main.cpp",
 
-    ###### Crypto APP'S #######
-    #"src/rsi_aes_app.c",
-    #"src/rsi_sha_app.c",
-    #"src/rsi_exp_dh_app.c",
-    #"src/rsi_ecdh_app.c",
-    #"src/rsi_hmac_sha_app.c",
-    #"src/rsi_rng_example.c",
+  ###### Crypto APP'S #######
+  #"src/rsi_aes_app.c",
+  #"src/rsi_sha_app.c",
+  #"src/rsi_exp_dh_app.c",
+  #"src/rsi_ecdh_app.c",
+  #"src/rsi_hmac_sha_app.c",
+  #"src/rsi_rng_example.c",
   ]
 
   if (chip_enable_pw_rpc || chip_build_libshell || enable_openthread_cli ||
-      use_wf200 || use_rs911x) {
+  use_wf200 || use_rs911x) {
     sources += [ "${examples_plat_dir}/uart.cpp" ]
   }
 
@@ -214,14 +215,14 @@ efr32_sdk("sdk") {
       include_dirs += rs911x_inc_plat
 
       if (use_rs911x_sockets) {
-        #
-        # Using native sockets inside RS911x
-        #
+      #
+      # Using native sockets inside RS911x
+      #
         include_dirs += rs911x_sock_inc
       } else {
-        #
-        # We use LWIP - not built-in sockets
-        #
+      #
+      # We use LWIP - not built-in sockets
+      #
         sources += rs911x_src_lwip
       }
     } else if (use_wf200) {
@@ -234,7 +235,7 @@ efr32_sdk("sdk") {
     }
 
     if (rs91x_wpa3_only) {
-      # TODO: Change this macro once WF200 support is provided
+    # TODO: Change this macro once WF200 support is provided
       defines += [ "WIFI_ENABLE_SECURITY_WPA3=1" ]
     }
   }
@@ -334,11 +335,11 @@ efr32_sdk("sdk") {
   }
 
   output_dir = root_out_dir
-
-group("efr32") {
-  deps = [ ":lighting_app" ]
 }
-
-group("default") {
-  deps = [ ":efr32" ]
-}
+#group("efr32") {
+#  deps = [ ":lighting_app" ]
+#}
+#
+#group("default") {
+#  deps += [ ":efr32" ]
+#}

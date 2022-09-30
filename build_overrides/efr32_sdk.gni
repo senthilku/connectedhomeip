@@ -13,6 +13,6 @@
 # limitations under the License.
 
 declare_args() {
-  # Root directory for efr32 SDK build files.
+  # Root directory for silabs SDK build files.
   efr32_sdk_build_root = "//third_party/silabs"
 }
