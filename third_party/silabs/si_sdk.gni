@@ -23,7 +23,7 @@ import("si_board.gni")
 declare_args() {
   # Location of the si SDK.
   sdk_support_root = "${chip_root}/third_party/silabs/matter_support"
-  wiseconnect_sdk_root = "${chip_root}/third_party/silabs/wisemcu-wifi-bt-sdk"
+  wisemcu_sdk_root = "${chip_root}/third_party/silabs/wisemcu-wifi-bt-sdk"
 
 
   #Build openthread with prebuilt silabs lib
@@ -51,16 +51,21 @@ template("si_sdk") {
 
     # Treat these includes as system includes, so warnings in them are not fatal.
     _include_dirs = [
+      "${wisemcu_sdk_root}/third_party/freertos/include",
+      "${wisemcu_sdk_root}/third_party/freertos/portable",
 
-      "${wiseconnect_sdk_root}/platforms/si91x/core/chip/inc",
-      "${wiseconnect_sdk_root}/platforms/si91x/core/config",
-      "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/inc",
-      "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver/config",
-      "${wiseconnect_sdk_root}/platforms/si91x/drivers/rom_driver/inc",
-      "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/inc",
-      "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver",
-      "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver/CMSIS/Driver/Include",
-      "${wiseconnect_sdk_root}/platforms/si91x/boards/brd4325a/inc",
+      "${wisemcu_sdk_root}/platforms/si91x/core/chip/inc",
+      "${wisemcu_sdk_root}/platforms/si91x/core/config",
+      "${wisemcu_sdk_root}/platforms/si91x/drivers/peripheral_drivers/inc",
+      "${wisemcu_sdk_root}/platforms/si91x/drivers/cmsis_driver/config",
+      "${wisemcu_sdk_root}/platforms/si91x/drivers/rom_driver/inc",
+      "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/inc",
+      "${wisemcu_sdk_root}/platforms/si91x/drivers/cmsis_driver",
+      "${wisemcu_sdk_root}/platforms/si91x/drivers/cmsis_driver/CMSIS/Driver/Include",
+      "${wisemcu_sdk_root}/platforms/si91x/boards/brd4325a/inc",
+
+      "${wisemcu_sdk_root}/sapi/rtos/freertos_wrapper",
+      "${wisemcu_sdk_root}/sapi/include",
     ]
 
     # Note that we're setting the mbedTLS and PSA configuration files through a
@@ -72,7 +77,6 @@ template("si_sdk") {
       "MBEDTLS_CONFIG_FILE=\"si917-chip-mbedtls-config.h\"",
       "__STARTUP_CLEAR_BSS",
       "HARD_FAULT_LOG_ENABLE",
-      "CORTEXM3_EFM32_MICRO",
       "EFR32_LOG_ENABLED=1",
       "NVM3_DEFAULT_NVM_SIZE=40960",
       "NVM3_DEFAULT_MAX_OBJECT_SIZE=4092",
@@ -93,10 +97,8 @@ template("si_sdk") {
       "SL_COMPONENT_CATALOG_PRESENT",
       "PLATFORM_HEADER=\"platform-header.h\"",
       "USE_NVM3=1",
-      "CCP_SI917_BRINGUP=1",
-    #"NO_CRYPTO_ACCELERATION",
 
-    #"__STACK_SIZE=0",
+      "CCP_SI917_BRINGUP=1",
     ]
 
     defines += board_defines
@@ -174,31 +176,64 @@ template("si_sdk") {
     source_set(sdk_target_name) {
       sources = [
       ######## CCP Platform #########
-        "${wiseconnect_sdk_root}/platforms/si91x/boards/brd4325a/src/rsi_board.c",
-        #"${wiseconnect_sdk_root}/platforms/si91x/boards/brd4325a/src/syscalls.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/rsi_deepsleep_commonflash.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/rsi_ps_ram_func.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/rsi_system_config.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/system_RS1xxxx.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver/UDMA.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver/USART.c",
+        "${wisemcu_sdk_root}/platforms/si91x/boards/brd4325a/src/rsi_board.c",
+        #"${wisemcu_sdk_root}/platforms/si91x/boards/brd4325a/src/syscalls.c",
+        "${wisemcu_sdk_root}/platforms/si91x/core/chip/src/rsi_deepsleep_commonflash.c",
+        "${wisemcu_sdk_root}/platforms/si91x/core/chip/src/rsi_ps_ram_func.c",
+        "${wisemcu_sdk_root}/platforms/si91x/core/chip/src/rsi_system_config.c",
+        "${wisemcu_sdk_root}/platforms/si91x/core/chip/src/system_RS1xxxx.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/cmsis_driver/UDMA.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/cmsis_driver/USART.c",
 
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/clock_update.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_egpio.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_udma_wrapper.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_udma.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_usart.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_ipmu.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_pll.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_power_save.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_rtc.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_temp_sensor.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_time_period.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_ulpss_clk.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/clock_update.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_egpio.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_udma_wrapper.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_udma.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_usart.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_ipmu.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_pll.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_power_save.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_rtc.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_temp_sensor.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_time_period.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_ulpss_clk.c",
 
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_comparator.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_processor_sensor.c",
-        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_wwdt.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_comparator.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_processor_sensor.c",
+        "${wisemcu_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_wwdt.c",
+
+        # SAPI SRC FILES
+        "${wisemcu_sdk_root}/sapi/wlan/rsi_wlan_apis.c",
+        "${wisemcu_sdk_root}/sapi/common/rsi_apis_non_rom.c",
+        "${wisemcu_sdk_root}/sapi/common/rsi_apis_rom.c",
+        "${wisemcu_sdk_root}/sapi/common/rsi_common_apis.c",
+        "${wisemcu_sdk_root}/sapi/common/rsi_device_init_apis.c",
+        "${wisemcu_sdk_root}/sapi/driver/device_interface/spi/rsi_spi_frame_rd_wr.c",
+        "${wisemcu_sdk_root}/sapi/driver/device_interface/spi/rsi_spi_functs.c",
+        "${wisemcu_sdk_root}/sapi/driver/device_interface/spi/rsi_spi_iface_init.c",
+        "${wisemcu_sdk_root}/sapi/driver/device_interface/spi/rsi_spi_mem_rd_wr.c",
+        "${wisemcu_sdk_root}/sapi/driver/device_interface/spi/rsi_spi_reg_rd_wr.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_common.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_device_init.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_driver_event_handlers.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_driver.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_events_rom.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_events.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_iap.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_nwk_rom.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_nwk.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_pkt_mgmt_rom.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_pkt_mgmt.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_queue_rom.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_queue.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_scheduler_rom.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_scheduler.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_setregion_countryinfo.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_timer.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_utils_rom.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_utils.c",
+        "${wisemcu_sdk_root}/sapi/driver/rsi_wlan.c",
+        "${wisemcu_sdk_root}/sapi/rtos/freertos_wrapper/rsi_os_wrapper.c",
       ]
 
       public_deps = [
