@@ -107,6 +107,10 @@
 #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
 
+// need to check this setting
+#define MBEDTLS_THREADING_C
+#define MBEDTLS_THREADING_ALT    // this mostly should be disabled
+
 #if CHIP_CRYPTO_PLATFORM
 #define MBEDTLS_USE_PSA_CRYPTO
 #endif
