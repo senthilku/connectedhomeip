@@ -59,7 +59,7 @@ declare_args() {
   sl_wfx_config_scan = true
 
   # Disable LCD on supported devices
-  disable_lcd = false
+  disable_lcd = true
 
   # Argument to Disable IPv4 for wifi(rs911)
   chip_enable_wifi_ipv4 = false
@@ -192,6 +192,7 @@ efr32_executable("lighting_app") {
     "src/LightingManager.cpp",
     "src/ZclCallbacks.cpp",
     "src/main.cpp",
+    #"${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/startup_efr32mg12p_org.S",
 
     ###### Crypto APP'S #######
     #"src/rsi_aes_app.c",
@@ -204,7 +205,7 @@ efr32_executable("lighting_app") {
 
   if (chip_enable_pw_rpc || chip_build_libshell || enable_openthread_cli ||
       use_wf200 || use_rs911x) {
-    sources += [ "${examples_plat_dir}/uart.cpp" ]
+    #sources += [ "${examples_plat_dir}/uart.cpp" ]
   }
 
   deps = [

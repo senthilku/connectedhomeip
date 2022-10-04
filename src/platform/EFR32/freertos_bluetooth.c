@@ -18,7 +18,10 @@
  */
 
 #include "AppConfig.h"
+#ifndef CCP_SI917_BRINGUP
 #include <em_device.h>
+#endif
+
 #include <platform/EFR32/freertos_bluetooth.h>
 #include <stdint.h>
 #include <string.h>

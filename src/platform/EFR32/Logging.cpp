@@ -328,10 +328,12 @@ extern "C" void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const ch
  */
 extern "C" void debugHardfault(uint32_t * sp)
 {
+#ifndef CCP_SI917_BRINGUP
     uint32_t cfsr  = SCB->CFSR;
     uint32_t hfsr  = SCB->HFSR;
     uint32_t mmfar = SCB->MMFAR;
     uint32_t bfar  = SCB->BFAR;
+
     uint32_t r0    = sp[0];
     uint32_t r1    = sp[1];
     uint32_t r2    = sp[2];
@@ -375,7 +377,7 @@ extern "C" void debugHardfault(uint32_t * sp)
     PrintLog(formattedMsg);
     snprintf(formattedMsg, sizeof formattedMsg, "PSR         0x%08lx\n", psr);
     PrintLog(formattedMsg);
-
+#endif	
     while (1)
         ;
 }

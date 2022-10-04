@@ -32,8 +32,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef CCP_SI917_BRINGUP
 #include "em_device.h"
 #include "em_se.h"
+#endif
 
 #if CHIP_HAVE_CONFIG_H
 #include <crypto/CryptoBuildConfig.h>
@@ -67,7 +69,7 @@
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_NIST_OPTIM
 #define MBEDTLS_ENTROPY_FORCE_SHA256
-#define MBEDTLS_ENTROPY_HARDWARE_ALT
+//#define MBEDTLS_ENTROPY_HARDWARE_ALT
 #define MBEDTLS_ERROR_STRERROR_DUMMY
 #define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HKDF_C

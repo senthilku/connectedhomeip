@@ -20,11 +20,12 @@
 #include <app/clusters/ota-requestor/OTADownloader.h>
 #include <app/clusters/ota-requestor/OTARequestorInterface.h>
 
+#ifndef CCP_SI917_BRINGUP
 extern "C" {
 #include "platform/bootloader/api/btl_interface.h"
 #include "platform/emlib/inc/em_bus.h" // For CORE_CRITICAL_SECTION
 }
-
+#endif
 #include "EFR32Config.h"
 
 /// No error, operation OK
@@ -129,7 +130,9 @@ void OTAImageProcessorImpl::HandlePrepareDownload(intptr_t context)
 
     ChipLogProgress(SoftwareUpdate, "HandlePrepareDownload");
 
+#ifndef CCP_SI917_BRINGUP
     CORE_CRITICAL_SECTION(bootloader_init();)
+#endif    
     mSlotId                                 = 0; // Single slot until we support multiple images
     writeBufOffset                          = 0;
     mWriteOffset                            = 0;
@@ -163,7 +166,9 @@ void OTAImageProcessorImpl::HandleFinalize(intptr_t context)
             writeBufOffset++;
         }
 
+#ifndef CCP_SI917_BRINGUP
         CORE_CRITICAL_SECTION(err = bootloader_eraseWriteStorage(mSlotId, mWriteOffset, writeBuffer, kAlignmentBytes);)
+#endif        
         if (err)
         {
             ChipLogError(SoftwareUpdate, "ERROR: In HandleFinalize bootloader_eraseWriteStorage() error %ld", err);
@@ -186,7 +191,9 @@ void OTAImageProcessorImpl::HandleApply(intptr_t context)
     // Force KVS to store pending keys such as data from StoreCurrentUpdateInfo()
     chip::DeviceLayer::PersistedStorage::KeyValueStoreMgrImpl().ForceKeyMapSave();
 
+#ifndef CCP_SI917_BRINGUP
     CORE_CRITICAL_SECTION(err = bootloader_verifyImage(mSlotId, NULL);)
+#endif    
     if (err != SL_BOOTLOADER_OK)
     {
         ChipLogError(SoftwareUpdate, "ERROR: bootloader_verifyImage() error %ld", err);
@@ -194,7 +201,9 @@ void OTAImageProcessorImpl::HandleApply(intptr_t context)
         return;
     }
 
+#ifndef CCP_SI917_BRINGUP
     CORE_CRITICAL_SECTION(err = bootloader_setImageToBootload(mSlotId);)
+#endif    
     if (err != SL_BOOTLOADER_OK)
     {
         ChipLogError(SoftwareUpdate, "ERROR: bootloader_setImageToBootload() error %ld", err);
@@ -202,8 +211,10 @@ void OTAImageProcessorImpl::HandleApply(intptr_t context)
         return;
     }
 
+#ifndef CCP_SI917_BRINGUP
     // This reboots the device
     CORE_CRITICAL_SECTION(bootloader_rebootAndInstall();)
+#endif    
 }
 
 void OTAImageProcessorImpl::HandleAbort(intptr_t context)
@@ -255,7 +266,9 @@ void OTAImageProcessorImpl::HandleProcessBlock(intptr_t context)
         {
             writeBufOffset = 0;
 
+#ifndef CCP_SI917_BRINGUP
             CORE_CRITICAL_SECTION(err = bootloader_eraseWriteStorage(mSlotId, mWriteOffset, writeBuffer, kAlignmentBytes);)
+#endif
             if (err)
             {
                 ChipLogError(SoftwareUpdate, "ERROR: In HandleProcessBlock bootloader_eraseWriteStorage() error %ld", err);

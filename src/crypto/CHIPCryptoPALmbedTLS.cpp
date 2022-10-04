@@ -403,8 +403,10 @@ CHIP_ERROR PBKDF2_sha256::pbkdf2_sha256(const uint8_t * password, size_t plen, c
     result = mbedtls_md_setup(&md_ctxt, md_info, use_hmac);
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 
+#if 0 /* link error - "chip_crypto = "mbedtls" */
     result = mbedtls_pkcs5_pbkdf2_hmac(&md_ctxt, Uint8::to_const_uchar(password), plen, Uint8::to_const_uchar(salt), slen,
                                        iteration_count, key_length, Uint8::to_uchar(output));
+#endif
 
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 

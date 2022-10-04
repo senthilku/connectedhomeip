@@ -19,7 +19,10 @@
 
 #include "efr32_utils.h"
 #include "init_efrPlatform.h"
+
+#ifndef CCP_SI917_BRINGUP
 #include "sl_system_kernel.h"
+#endif
 
 #include <matter_config.h>
 

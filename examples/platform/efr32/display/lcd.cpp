@@ -29,7 +29,9 @@
 #include "qrcodegen.h"
 #endif // QR_CODE_ENABLED
 
+#ifndef CCP_SI917_BRINGUP
 #include "sl_board_control.h"
+#endif
 
 #define LCD_SIZE 128
 #define QR_CODE_VERSION 4

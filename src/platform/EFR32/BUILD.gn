@@ -36,7 +36,7 @@ static_library("EFR32") {
     "../SingletonConfigurationManager.cpp",
     #"BLEManagerImpl.cpp",
     #"BLEManagerImpl.h",
-    "BlePlatformConfig.h",
+    #"BlePlatformConfig.h",
     "CHIPDevicePlatformConfig.h",
     "CHIPDevicePlatformEvent.h",
     "CHIPMem-Platform.cpp",

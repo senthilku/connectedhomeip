@@ -14,5 +14,6 @@
 
 declare_args() {
   # Root directory for erf32 SDK.
-  efr32_sdk_build_root = "//third_party/connectedhomeip/third_party/silabs"
+  #efr32_sdk_build_root = "//third_party/connectedhomeip/third_party/silabs"
+  efr32_sdk_build_root = "//../../../third_party/silabs"
 }

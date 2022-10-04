@@ -1,0 +1,186 @@
+# Copyright (c) 2020 Project CHIP Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#import("//build_overrides/build.gni")
+#import("//build_overrides/chip.gni")
+import("//build_overrides/efr32_sdk.gni")
+#import("//build_overrides/pigweed.gni")
+
+#import("${build_root}/config/defaults.gni")
+import("${efr32_sdk_build_root}/efr32_executable.gni")
+import("${efr32_sdk_build_root}/efr32_sdk.gni")
+
+#import("${chip_root}/examples/common/pigweed/pigweed_rpcs.gni")
+#import("${chip_root}/src/platform/device.gni")
+
+#Si917_cflags = []
+#Si917_defines = []
+
+assert(current_os == "freertos")
+
+#efr32_project_dir = "${chip_root}/examples/lighting-app_test/efr32"
+examples_plat_dir = "${chip_root}/examples/platform/efr32"
+
+efr32_sdk("sdk") {
+  # WiFi Settings
+}
+
+wiseconnect_sdk_root =
+    "${chip_root}/third_party/silabs/wiseconnect-wifi-bt-sdk"
+
+efr32_executable("lighting_app") {
+  output_name = "chip-efr32-lighting-example.out"
+  include_dirs = [ "include" ]
+  defines = []
+
+      include_dirs += [
+        #"${efr32_sdk_root}/hardware/kit/EFR32MG21_${efr32_board}/config",
+        #"${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG21/Include",
+        #"${efr32_sdk_root}/platform/radio/rail_lib/chip/efr32/efr32xg2x",
+        #"${efr32_sdk_root}/util/third_party/freertos/kernel/portable/GCC/ARM_CM33_NTZ/non_secure",
+        #"${efr32_sdk_root}/platform/radio/rail_lib/plugin/pa-conversions/efr32xg21",
+        #"${efr32_sdk_root}/platform/radio/rail_lib/plugin/pa-conversions/efr32xg21/config",
+      ]
+
+      include_dirs += [
+        "${wiseconnect_sdk_root}/platforms/si91x/boards/brd4325a/inc",
+        "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/inc",
+        "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/inc",
+        "${wiseconnect_sdk_root}/platforms/si91x/core/chip/inc",
+        "${wiseconnect_sdk_root}/platforms/si91x/core/config",
+        "${wiseconnect_sdk_root}/platforms/si91x/core/cmsis",
+        "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver/config",
+        "${wiseconnect_sdk_root}/platforms/si91x/drivers/rom_driver/inc",
+        "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver",
+        "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver/CMSIS/Driver/Include",
+        ]
+
+       include_dirs += [
+         #Flash App Include
+         "src/flash/Flash_Intf.h",
+         "src/flash/FlashOS.h", 
+       ]      
+
+  sources = [
+
+     ####################### * Blinky APP * #############################
+     
+    "${wiseconnect_sdk_root}/platforms/si91x/boards/brd4325a/src/rsi_board.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/boards/brd4325a/src/syscalls.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/rsi_deepsleep_commonflash.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/rsi_ps_ram_func.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/rsi_system_config.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver/UDMA.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/cmsis_driver/USART.c",
+    
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/clock_update.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_egpio.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_udma_wrapper.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_udma.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_usart.c",    
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_ipmu.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_pll.c",    
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_power_save.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_rtc.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_temp_sensor.c",
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_time_period.c",  
+    "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_ulpss_clk.c", 
+
+    #Main Application Code
+    "src/main.c",
+
+    #############################################################
+
+     ####################### * Flash APP * #############################
+
+     "${wiseconnect_sdk_root}/platforms/si91x/drivers/peripheral_drivers/src/rsi_comparator.c",
+     "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_processor_sensor.c",
+     "${wiseconnect_sdk_root}/platforms/si91x/drivers/systemlevel/src/rsi_wwdt.c",
+     
+    #Main FLASH Application Code
+    #"src/flash/mainFlash.c",
+    
+    "src/flash/Flash_Intf.c",
+    "src/flash/FlashDev.c",
+    "src/flash/FlashPrg.c", 
+    "src/flash/rsi_qspi_example.c",
+     #############################################################
+
+    #"${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/startup_RS1xxxx.c",
+    #"${wiseconnect_sdk_root}/platforms/si91x/core/chip/src/system_RS1xxxx.c",
+
+     #"src/startup_RS1xxxx.c",
+     #"src/system_RS1xxxx.c",
+
+     #"${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/startup_efr32mg12p.c",
+     #"${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/GCC/startup_efr32mg12p.S",
+     #"${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/GCC/startup_efr32mg12p_org.S",
+     
+     #"src/startup_efr32mg12p_org.S",
+     #"src/system_RS1xxxx.c",
+
+     #"src/startup_RS1xxxx_keil.s",
+
+      #working - efr32mg12.ld
+      "src/startup_efr32mg12p_org.S",
+      "src/system_RS1xxxx_keil.c",
+      
+      #"src/startup_efr32mg12p.c",
+
+      #Ok - linkerfile_execution_from_ram
+      #"src/system_RS1xxxx_keil.c",
+      #"src/startup_RS1xxxx.c",
+
+     #"src/startup_efr32mg12p.S"
+     #"src/startup_efr32mg12p_app.S",
+      
+    #"src/startup_RS1xxxx.s",
+    #"src/startup_efr32mg12p.c"
+  ]
+
+      sources += [
+        #"${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/GCC/startup_efr32mg12p.S",
+        #"${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/startup_efr32mg12p.c",
+        #"${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32MG12P/Source/system_efr32mg12p.c",
+        #"${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_dcdc_s1.c",
+        #"${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_emu_s1.c",
+        #"${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_hfxo_s1.c",
+        #"${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_lfxo_s1.c",
+        #"${efr32_sdk_root}/util/third_party/freertos/kernel/portable/GCC/ARM_CM4F/port.c",
+        ]
+
+    
+  deps = [
+    ":sdk"
+  ]
+
+  #ldscript = "${examples_plat_dir}/ldscripts/${efr32_family}.ld"
+
+ldscript = "${examples_plat_dir}/ldscripts/efr32mg12.ld"
+#ldscript = "${examples_plat_dir}/ldscripts/linkerfile_execution_from_ram.ld"
+ 
+  inputs = [ ldscript ]
+
+  ldflags = [ "-T" + rebase_path(ldscript, root_build_dir) ]
+
+  output_dir = root_out_dir
+}
+
+group("efr32") {
+  deps = [ ":lighting_app" ]
+}
+
+group("default") {
+  deps = [ ":efr32" ]
+}

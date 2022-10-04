@@ -111,7 +111,10 @@ extern "C" {
 //#include CMSIS_device_header //senthil
 
 #include "em_assert.h"
+
+#ifndef CCP_SI917_BRINGUP
 #include "em_device.h"
+#endif
 
 #if defined(SL_COMPONENT_CATALOG_PRESENT)
 #include "sl_component_catalog.h"
@@ -174,7 +177,12 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 /* FreeRTOS MPU specific definitions. */
 #define configINCLUDE_APPLICATION_DEFINED_PRIVILEGED_FUNCTIONS (0)
 
+#if 0 //senthil CCP critical
 #define configCPU_CLOCK_HZ (SystemCoreClock)
+#else
+#define configCPU_CLOCK_HZ (NULL)
+#endif
+
 #define configUSE_PREEMPTION (1)
 #define configUSE_TIME_SLICING (1)
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION (0)
@@ -247,7 +255,7 @@ standard names. */
 #define vPortSVCHandler SVC_Handler
 #define xPortPendSVHandler PendSV_Handler
 /* Ensure Cortex-M port compatibility. */
-#define SysTick_Handler xPortSysTickHandler
+#define SysTick_Handler xPortSysTickHandler //senthil
 
 /* Thread local storage pointers used by the SDK */
 #ifndef configNUM_SDK_THREAD_LOCAL_STORAGE_POINTERS

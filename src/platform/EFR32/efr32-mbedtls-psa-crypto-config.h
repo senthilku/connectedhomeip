@@ -23,7 +23,10 @@
 
 #define SL_PSA_ITS_USER_MAX_FILES (128)
 
+#ifndef CCP_SI917_BRINGUP
 #include "em_device.h"
+#endif
+
 #if defined(SEMAILBOX_PRESENT) || defined(CRYPTOACC_PRESENT)
 // Use accelerated HMAC when we have it
 #define MBEDTLS_PSA_ACCEL_ALG_HMAC

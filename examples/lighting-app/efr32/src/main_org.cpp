@@ -22,7 +22,7 @@
 #include "AppConfig.h"
 #include "init_efrPlatform.h"
 #include "sl_simple_button_instances.h"
-//#include "sl_system_kernel.h"
+#include "sl_system_kernel.h"
 #include <DeviceInfoProviderImpl.h>
 #include <app/server/Server.h>
 #include <credentials/DeviceAttestationCredsProvider.h>
@@ -49,27 +49,6 @@ int a[10] = {100, 200, 300,66,77,88};
 // ================================================================================
 // Main Code
 // ================================================================================
-
-#if 1
-int main(void)
-{
-
-    init_efrPlatform();
-
-    EFR32_LOG("CCP, Starting App Task1");
-    EFR32_LOG("CCP, Starting App Task2");
-#if 0
-    if (EFR32MatterConfig::InitMatter(BLE_DEV_NAME) != CHIP_NO_ERROR)
-        appError(CHIP_ERROR_INTERNAL);
-#endif
-    while(1)
-    {
-    	__WFI();
-    }
-	
-    return 1;
-}
-#else
 int main(void)
 {
 #ifndef CCP_SI917_BRINGUP
@@ -103,7 +82,6 @@ int main(void)
     EFR32_LOG("vTaskStartScheduler() failed");
     appError(CHIP_ERROR_INTERNAL);
 }
-#endif
 
 #ifndef CCP_SI917_BRINGUP
 void sl_button_on_change(const sl_button_t * handle)

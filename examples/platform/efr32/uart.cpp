@@ -24,7 +24,9 @@ extern "C" {
 #include "assert.h"
 #include "em_core.h"
 #include "em_usart.h"
+#ifndef CCP_SI917_BRINGUP
 #include "sl_board_control.h"
+#endif
 #include "sl_uartdrv_instances.h"
 #ifdef EFR32MG24
 #include "sl_uartdrv_eusart_vcom_config.h"
@@ -212,7 +214,10 @@ static uint8_t RetrieveFromFifo(Fifo_t * fifo, uint8_t * pData, uint16_t SizeToR
  */
 void uartConsoleInit(void)
 {
+#ifndef CCP_SI917_BRINGUP
     sl_board_enable_vcom();
+#endif
+
     // Init a fifo for the data received on the uart
     InitFifo(&sReceiveFifo, sRxFifoBuffer, MAX_BUFFER_SIZE);
 

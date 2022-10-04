@@ -150,7 +150,13 @@ bool MemoryInternalCheckPointer(const void * p, size_t min_size)
 } // namespace Platform
 } // namespace chip
 
+#ifndef CCP_SI917_BRINGUP
 extern "C" __WEAK void memMonitoringTrackAlloc(void * ptr, size_t size) {}
 extern "C" __WEAK void memMonitoringTrackFree(void * ptr, size_t size) {}
+#else
+extern "C" void memMonitoringTrackAlloc(void * ptr, size_t size) {}
+extern "C" void memMonitoringTrackFree(void * ptr, size_t size) {}
+#endif
+
 
 #endif // CHIP_CONFIG_MEMORY_MGMT_PLATFORM

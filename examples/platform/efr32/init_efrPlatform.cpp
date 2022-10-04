@@ -53,26 +53,40 @@ extern "C" {
 
 #include "init_efrPlatform.h"
 #include "sl_component_catalog.h"
+
+#ifndef CCP_SI917_BRINGUP
 #include "sl_mbedtls.h"
+#endif
+
+//#ifndef CCP_SI917_BRINGUP
 #include "sl_system_init.h"
+#include "efr32_utils.h"
+//#endif
 
 void initAntenna(void);
 
 void init_efrPlatform(void)
 {
+
+    
+    sl_system_init();
+    EFR32_LOG("CCP, init_efrPlatform");
+
+
+    sl_LED_Toggle();
+    sl_LED_Toggle();
+    sl_LED_Toggle();	
 #ifndef CCP_SI917_BRINGUP
     sl_system_init();
     sl_mbedtls_init();
 #endif /* CCP_SI917_BRINGUP */
 
-#if EFR32_LOG_ENABLED
-    efr32InitLog();
-#endif
-
 #if CHIP_ENABLE_OPENTHREAD
     efr32RadioInit();
     efr32AlarmInit();
 #endif // CHIP_ENABLE_OPENTHREAD
+
+   EFR32_LOG(" END.....init_efrPlatform");
 }
 
 #ifdef __cplusplus
