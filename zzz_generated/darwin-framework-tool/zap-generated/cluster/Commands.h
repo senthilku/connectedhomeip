@@ -61743,7 +61743,6 @@ public:
 | * CopyScene                                                         |   0x40 |
 |------------------------------------------------------------------------------|
 | Attributes:                                                         |        |
-| * LastConfiguredBy                                                  | 0x0000 |
 | * SceneTableSize                                                    | 0x0001 |
 | * FabricSceneInfo                                                   | 0x0002 |
 | * GeneratedCommandList                                              | 0xFFF8 |
@@ -61763,7 +61762,7 @@ class ScenesManagementAddScene : public ClusterCommand {
 public:
     ScenesManagementAddScene()
         : ClusterCommand("add-scene")
-        , mComplex_ExtensionFieldSets(&mRequest.extensionFieldSets)
+        , mComplex_ExtensionFieldSetStructs(&mRequest.extensionFieldSetStructs)
     {
 #if MTR_ENABLE_PROVISIONAL
         AddArgument("GroupID", 0, UINT16_MAX, &mRequest.groupID);
@@ -61778,7 +61777,7 @@ public:
         AddArgument("SceneName", &mRequest.sceneName);
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
-        AddArgument("ExtensionFieldSets", &mComplex_ExtensionFieldSets);
+        AddArgument("ExtensionFieldSetStructs", &mComplex_ExtensionFieldSetStructs);
 #endif // MTR_ENABLE_PROVISIONAL
         ClusterCommand::AddArguments();
     }
@@ -61809,9 +61808,9 @@ public:
 #if MTR_ENABLE_PROVISIONAL
         { // Scope for our temporary variables
             auto * array_0 = [NSMutableArray new];
-            for (auto & entry_0 : mRequest.extensionFieldSets) {
-                MTRScenesManagementClusterExtensionFieldSet * newElement_0;
-                newElement_0 = [MTRScenesManagementClusterExtensionFieldSet new];
+            for (auto & entry_0 : mRequest.extensionFieldSetStructs) {
+                MTRScenesManagementClusterExtensionFieldSetStruct * newElement_0;
+                newElement_0 = [MTRScenesManagementClusterExtensionFieldSetStruct new];
                 newElement_0.clusterID = [NSNumber numberWithUnsignedInt:entry_0.clusterID];
                 { // Scope for our temporary variables
                     auto * array_2 = [NSMutableArray new];
@@ -61865,7 +61864,7 @@ public:
                 }
                 [array_0 addObject:newElement_0];
             }
-            params.extensionFieldSets = array_0;
+            params.extensionFieldSetStructs = array_0;
         }
 #endif // MTR_ENABLE_PROVISIONAL
         uint16_t repeatCount = mRepeatCount.ValueOr(1);
@@ -61895,7 +61894,7 @@ public:
 
 private:
     chip::app::Clusters::ScenesManagement::Commands::AddScene::Type mRequest;
-    TypedComplexArgument<chip::app::DataModel::List<const chip::app::Clusters::ScenesManagement::Structs::ExtensionFieldSet::Type>> mComplex_ExtensionFieldSets;
+    TypedComplexArgument<chip::app::DataModel::List<const chip::app::Clusters::ScenesManagement::Structs::ExtensionFieldSetStruct::Type>> mComplex_ExtensionFieldSetStructs;
 };
 
 #endif // MTR_ENABLE_PROVISIONAL
@@ -62369,91 +62368,6 @@ private:
 
 #endif // MTR_ENABLE_PROVISIONAL
 
-#if MTR_ENABLE_PROVISIONAL
-
-/*
- * Attribute LastConfiguredBy
- */
-class ReadScenesManagementLastConfiguredBy : public ReadAttribute {
-public:
-    ReadScenesManagementLastConfiguredBy()
-        : ReadAttribute("last-configured-by")
-    {
-    }
-
-    ~ReadScenesManagementLastConfiguredBy()
-    {
-    }
-
-    CHIP_ERROR SendCommand(MTRBaseDevice * device, chip::EndpointId endpointId) override
-    {
-        constexpr chip::ClusterId clusterId = chip::app::Clusters::ScenesManagement::Id;
-        constexpr chip::AttributeId attributeId = chip::app::Clusters::ScenesManagement::Attributes::LastConfiguredBy::Id;
-
-        ChipLogProgress(chipTool, "Sending cluster (0x%08" PRIX32 ") ReadAttribute (0x%08" PRIX32 ") on endpoint %u", endpointId, clusterId, attributeId);
-
-        dispatch_queue_t callbackQueue = dispatch_queue_create("com.chip.command", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
-        __auto_type * cluster = [[MTRBaseClusterScenesManagement alloc] initWithDevice:device endpointID:@(endpointId) queue:callbackQueue];
-        [cluster readAttributeLastConfiguredByWithCompletion:^(NSNumber * _Nullable value, NSError * _Nullable error) {
-            NSLog(@"ScenesManagement.LastConfiguredBy response %@", [value description]);
-            if (error == nil) {
-                RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
-            } else {
-                LogNSError("ScenesManagement LastConfiguredBy read Error", error);
-                RemoteDataModelLogger::LogAttributeErrorAsJSON(@(endpointId), @(clusterId), @(attributeId), error);
-            }
-            SetCommandExitStatus(error);
-        }];
-        return CHIP_NO_ERROR;
-    }
-};
-
-class SubscribeAttributeScenesManagementLastConfiguredBy : public SubscribeAttribute {
-public:
-    SubscribeAttributeScenesManagementLastConfiguredBy()
-        : SubscribeAttribute("last-configured-by")
-    {
-    }
-
-    ~SubscribeAttributeScenesManagementLastConfiguredBy()
-    {
-    }
-
-    CHIP_ERROR SendCommand(MTRBaseDevice * device, chip::EndpointId endpointId) override
-    {
-        constexpr chip::ClusterId clusterId = chip::app::Clusters::ScenesManagement::Id;
-        constexpr chip::CommandId attributeId = chip::app::Clusters::ScenesManagement::Attributes::LastConfiguredBy::Id;
-
-        ChipLogProgress(chipTool, "Sending cluster (0x%08" PRIX32 ") ReportAttribute (0x%08" PRIX32 ") on endpoint %u", clusterId, attributeId, endpointId);
-        dispatch_queue_t callbackQueue = dispatch_queue_create("com.chip.command", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
-        __auto_type * cluster = [[MTRBaseClusterScenesManagement alloc] initWithDevice:device endpointID:@(endpointId) queue:callbackQueue];
-        __auto_type * params = [[MTRSubscribeParams alloc] initWithMinInterval:@(mMinInterval) maxInterval:@(mMaxInterval)];
-        if (mKeepSubscriptions.HasValue()) {
-            params.replaceExistingSubscriptions = !mKeepSubscriptions.Value();
-        }
-        if (mFabricFiltered.HasValue()) {
-            params.filterByFabric = mFabricFiltered.Value();
-        }
-        if (mAutoResubscribe.HasValue()) {
-            params.resubscribeAutomatically = mAutoResubscribe.Value();
-        }
-        [cluster subscribeAttributeLastConfiguredByWithParams:params
-            subscriptionEstablished:^() { mSubscriptionEstablished = YES; }
-            reportHandler:^(NSNumber * _Nullable value, NSError * _Nullable error) {
-                NSLog(@"ScenesManagement.LastConfiguredBy response %@", [value description]);
-                if (error == nil) {
-                    RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
-                } else {
-                    RemoteDataModelLogger::LogAttributeErrorAsJSON(@(endpointId), @(clusterId), @(attributeId), error);
-                }
-                SetCommandExitStatus(error);
-            }];
-
-        return CHIP_NO_ERROR;
-    }
-};
-
-#endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
 
 /*
@@ -158548,6 +158462,9 @@ public:
         AddArgument("StreamUsage", 0, UINT8_MAX, &mRequest.streamUsage);
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
+        AddArgument("OriginatingEndpointID", 0, UINT16_MAX, &mRequest.originatingEndpointID);
+#endif // MTR_ENABLE_PROVISIONAL
+#if MTR_ENABLE_PROVISIONAL
         AddArgument("VideoStreamID", 0, UINT16_MAX, &mRequest.videoStreamID);
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
@@ -158578,6 +158495,9 @@ public:
         params.timedInvokeTimeoutMs = mTimedInteractionTimeoutMs.HasValue() ? [NSNumber numberWithUnsignedShort:mTimedInteractionTimeoutMs.Value()] : nil;
 #if MTR_ENABLE_PROVISIONAL
         params.streamUsage = [NSNumber numberWithUnsignedChar:chip::to_underlying(mRequest.streamUsage)];
+#endif // MTR_ENABLE_PROVISIONAL
+#if MTR_ENABLE_PROVISIONAL
+        params.originatingEndpointID = [NSNumber numberWithUnsignedShort:mRequest.originatingEndpointID];
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
         if (mRequest.videoStreamID.HasValue()) {
@@ -158705,6 +158625,9 @@ public:
         AddArgument("StreamUsage", 0, UINT8_MAX, &mRequest.streamUsage);
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
+        AddArgument("OriginatingEndpointID", 0, UINT16_MAX, &mRequest.originatingEndpointID);
+#endif // MTR_ENABLE_PROVISIONAL
+#if MTR_ENABLE_PROVISIONAL
         AddArgument("VideoStreamID", 0, UINT16_MAX, &mRequest.videoStreamID);
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
@@ -158745,6 +158668,9 @@ public:
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
         params.streamUsage = [NSNumber numberWithUnsignedChar:chip::to_underlying(mRequest.streamUsage)];
+#endif // MTR_ENABLE_PROVISIONAL
+#if MTR_ENABLE_PROVISIONAL
+        params.originatingEndpointID = [NSNumber numberWithUnsignedShort:mRequest.originatingEndpointID];
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
         if (mRequest.videoStreamID.HasValue()) {
@@ -182962,10 +182888,6 @@ void registerClusterScenesManagement(Commands & commands)
         make_unique<ReadAttribute>(Id), //
         make_unique<WriteAttribute>(Id), //
         make_unique<SubscribeAttribute>(Id), //
-#if MTR_ENABLE_PROVISIONAL
-        make_unique<ReadScenesManagementLastConfiguredBy>(), //
-        make_unique<SubscribeAttributeScenesManagementLastConfiguredBy>(), //
-#endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
         make_unique<ReadScenesManagementSceneTableSize>(), //
         make_unique<SubscribeAttributeScenesManagementSceneTableSize>(), //
