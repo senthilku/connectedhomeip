@@ -33,6 +33,8 @@ namespace ClosureControl {
 class ClosureControlManager : public ClosureControl::Delegate
 {
 public:
+    ClosureControlManager(EndpointId clustersEndpoint);
+
     void SetClosureControlInstance(ClosureControl::Instance & instance);
 
     /*********************************************************************************
@@ -56,8 +58,9 @@ public:
      *
      ***************************************************************************/
     CHIP_ERROR StartCurrentErrorListRead() override;
-    CHIP_ERROR GetCurrentErrorListAtIndex(size_t Index, ClosureErrorEnum & closureError) override;
     CHIP_ERROR EndCurrentErrorListRead() override;
+    
+    void ClosureControlAttributeChangeHandler(EndpointId endpointId, AttributeId attributeId, uint8_t * value, uint16_t size);
 
     void ClosureControlAttributeChangeHandler(EndpointId endpointId, AttributeId attributeId);
 
@@ -71,11 +74,10 @@ private:
      ***************************************************************************/
 
     // Need the following so can determine which features are supported
-    ClosureControl::Instance * mpClosureControlInstance = nullptr;
+    ClosureControl::Instance * mpClosureControlInstance;
+    bool CheckCommandStateCompatiblilty(CommandId cmd,MainStateEnum state);
     bool IsManualLatch();
     bool IsDeviceReadytoMove();
-
-    static ClosureControlManager sClosureCtrlMgr;
 };
 
 inline ClosureControlManager & ClosureCtrlMgr()

@@ -22,7 +22,8 @@
 
 #include "ClosureControlManager.h"
 #include <AppConfig.h>
-
+#include "ClosureControlManager.h"
+ 
 #include <app-common/zap-generated/attributes/Accessors.h>
 #include <app-common/zap-generated/callback.h>
 #include <app-common/zap-generated/cluster-objects.h>
@@ -45,16 +46,13 @@ void MatterPostAttributeChangeCallback(const app::ConcreteAttributePath & attrib
         ChipLogProgress(Zcl, "Identify cluster ID: " ChipLogFormatMEI " Type: %u Value: %u, length %u",
                         ChipLogValueMEI(attributePath.mAttributeId), type, *value, size);
         break;
+    case app::Clusters::ClosureControl::Id:
+        ChipLogProgress(Zcl, "Closure cluster ID: " ChipLogFormatMEI " Type: %u Value: %u, length %u",
+                        ChipLogValueMEI(attributePath.mAttributeId), type, *value, size);
+        //TODO: Add attribute call back handler ClosureControlManager::ClosureControlAttributeChangeHandler(attributePath.mEndpointId, attributePath.mAttributeId, value, size);
+        break;
     default:
         ChipLogProgress(NotSpecified, "Unhandled cluster ID: 0x%04lx", attributePath.mClusterId);
         break;
     }
-}
-
-/* Forwards all attributes changes */
-void MatterClosureControlClusterServerAttributeChangedCallback(const app::ConcreteAttributePath & attributePath)
-{
-    VerifyOrDie(attributePath.mClusterId == app::Clusters::ClosureControl::Id);
-    ChipLogProgress(Zcl, "Closure cluster ID: " ChipLogFormatMEI, ChipLogValueMEI(attributePath.mAttributeId));
-    ClosureCtrlMgr().ClosureControlAttributeChangeHandler(attributePath.mEndpointId, attributePath.mAttributeId);
 }

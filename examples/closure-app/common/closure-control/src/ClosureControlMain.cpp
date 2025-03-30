@@ -56,7 +56,7 @@ CHIP_ERROR ClosureControlInit(EndpointId endpointId)
         return CHIP_ERROR_INCORRECT_STATE;
     }
 
-    gClosureCtrlDelegate = std::make_unique<ClosureControlManager>();
+    gClosureCtrlDelegate = std::make_unique<ClosureControlManager>(endpointId);
     if (!gClosureCtrlDelegate)
     {
         ChipLogError(AppServer, "Failed to allocate memory for ClosureControlManager");

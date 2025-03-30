@@ -53,7 +53,7 @@
 
 namespace {
 
-constexpr chip::EndpointId kClosureEndpoint       = 1;
+constexpr chip::EndpointId kClosureEndpoint = 1;
 constexpr chip::EndpointId kClosurePanelEndpoint1 = 2;
 constexpr chip::EndpointId kClosurePanelEndpoint2 = 3;
 
@@ -83,7 +83,7 @@ void ApplicationInit()
 {
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     SILABS_LOG("==================================================");
-    SILABS_LOG("Closure-app ClosureControl starting for endpoint EP%d", kClosureEndpoint);
+    SILABS_LOG("Closure-app ClosureControl starting for endpoint EP%d. featureMap 0x%08lx",kClosureEndpoint, ClosureControl::sFeatureMap.Raw());
     ClosureControlInit(kClosureEndpoint);
     SILABS_LOG("==================================================");
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
