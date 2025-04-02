@@ -72,7 +72,11 @@ using namespace chip::TLV;
 namespace chip {
 namespace app {
 namespace Clusters {
-namespace ClosureControl {} // namespace ClosureControl
+namespace ClosureControl {
+
+static chip::BitMask<Feature> sFeatureMap(Feature::kCalibration,Feature::kPositioning,Feature::kMotionLatching,Feature::kSpeed);
+
+} // namespace ClosureControl
 } // namespace Clusters
 } // namespace app
 } // namespace chip
