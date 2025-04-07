@@ -121,12 +121,11 @@ CHIP_ERROR Instance::SetMainState(MainStateEnum aMainState)
     
     // If the Main State has changed, trigger the attribute change callback
     if (mMainState != aMainState)
-    {        
+    {
         //Present state is Disengaged and will be changed to new state , so set engageState to true.
         if(mMainState == MainStateEnum::kDisengaged){
             PostEngageStateChangedEvent(true);
         }
-        
         //New state will be Disengaged , so set engageState to false.
         if(aMainState == MainStateEnum::kDisengaged){
             PostEngageStateChangedEvent(false);
@@ -144,17 +143,17 @@ CHIP_ERROR Instance::SetOverallState(const GenericOverallState & aOverallState)
     // If the overall state has changed, trigger the attribute change callback
     if (!(mOverallState == aOverallState))
     {
-        if(mOverallState.secureState!= aOverallState.secureState) 
-        {
-            if(aOverallState.secureState.HasValue()) 
+        if(mOverallState.secureState!= aOverallState.secureState) {
+            if(aOverallState.secureState.HasValue()) {
                 PostSecureStateChangedEvent(false);
-             else {
+            } else {
                 PostSecureStateChangedEvent(aOverallState.secureState.Value().Value());
             }
         }
         
         mOverallState = aOverallState;
         MatterReportingAttributeChangeCallback(mDelegate.GetEndpointId(), ClosureControl::Id, Attributes::OverallState::Id);
+        
     }
     
     return CHIP_NO_ERROR;
@@ -188,17 +187,17 @@ const GenericOverallTarget & Instance::GetOverallTarget() const
 }
 
 CHIP_ERROR Instance::PostOperationalErrorEvent(const DataModel::List<const ClosureErrorEnum> errorState) {
-
+    
     CHIP_ERROR err = CHIP_NO_ERROR;
     err = SetMainState(MainStateEnum::kError);
-
+    
     //TODO: Should CurrentErrorList attribute updated here.
-
+    
     if (CHIP_NO_ERROR != err)
     {
         ChipLogError(DataManagement, "ClosureControlCLuster: Operation error event set MainState as Error failed %" CHIP_ERROR_FORMAT, err.Format());
     }
-
+    
     Events::OperationalError::Type event{.errorState = errorState};
     EventNumber eventNumber;
     err = LogEvent(event, mDelegate.GetEndpointId(), eventNumber);
@@ -212,11 +211,11 @@ CHIP_ERROR Instance::PostOperationalErrorEvent(const DataModel::List<const Closu
 
 CHIP_ERROR Instance::PostMovementCompletedEvent() {
     Events::MovementCompleted::Type event{};
-
+    
     if(!HasFeature(Feature::kPositioning)) {
         return CHIP_NO_ERROR;
     }
-
+    
     //TODO: should the countdown time set to 0 here.
 
     EventNumber eventNumber;
@@ -231,7 +230,7 @@ CHIP_ERROR Instance::PostMovementCompletedEvent() {
 
 CHIP_ERROR Instance::PostEngageStateChangedEvent(const bool engageValue) {
     Events::EngageStateChanged::Type event{.engageValue = engageValue};
-
+    
     if(!HasFeature(Feature::kManuallyOperable)) {
         return CHIP_NO_ERROR;
     }
@@ -248,7 +247,7 @@ CHIP_ERROR Instance::PostEngageStateChangedEvent(const bool engageValue) {
 
 CHIP_ERROR Instance::PostSecureStateChangedEvent(const bool secureValue) {
     Events::SecureStateChanged::Type event{.secureValue = secureValue};
-
+    
     if(!(HasFeature(Feature::kPositioning) || HasFeature(Feature::kMotionLatching))) {
         return CHIP_NO_ERROR;
     }

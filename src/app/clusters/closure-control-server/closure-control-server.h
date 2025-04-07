@@ -158,10 +158,9 @@ public:
      */
     const GenericOverallTarget & GetOverallTarget() const;
     
-        
     /**
-     *  @brief Post event when a reportable error condition is detected
-     * @param[in]
+     * @brief Post event when a reportable error condition is detected
+     * @param[in] 
      * @return CHIP_NO_ERROR if event posted succesfully
      *                       return error recieved from LogEvent.
      */
