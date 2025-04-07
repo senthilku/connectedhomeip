@@ -91749,6 +91749,10 @@ public:
 | * ClusterRevision                                                   | 0xFFFD |
 |------------------------------------------------------------------------------|
 | Events:                                                             |        |
+| * OperationalError                                                  | 0x0000 |
+| * MovementCompleted                                                 | 0x0001 |
+| * EngageStateChanged                                                | 0x0002 |
+| * SecureStateChanged                                                | 0x0003 |
 \*----------------------------------------------------------------------------*/
 
 #if MTR_ENABLE_PROVISIONAL
@@ -91810,7 +91814,7 @@ public:
         AddArgument("Position", 0, UINT8_MAX, &mRequest.position);
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
-        AddArgument("Latch", 0, UINT8_MAX, &mRequest.latch);
+        AddArgument("Latch", 0, 1, &mRequest.latch);
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
         AddArgument("Speed", 0, UINT8_MAX, &mRequest.speed);
@@ -91838,7 +91842,7 @@ public:
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
         if (mRequest.latch.HasValue()) {
-            params.latch = [NSNumber numberWithUnsignedChar:chip::to_underlying(mRequest.latch.Value())];
+            params.latch = [NSNumber numberWithBool:mRequest.latch.Value()];
         } else {
             params.latch = nil;
         }
@@ -188343,6 +188347,8 @@ void registerClusterClosureControl(Commands & commands)
         make_unique<ReadClosureControlClusterRevision>(), //
         make_unique<SubscribeAttributeClosureControlClusterRevision>(), //
 #endif // MTR_ENABLE_PROVISIONAL
+        make_unique<ReadEvent>(Id), //
+        make_unique<SubscribeEvent>(Id), //
     };
 
     commands.RegisterCluster(clusterName, clusterCommands);

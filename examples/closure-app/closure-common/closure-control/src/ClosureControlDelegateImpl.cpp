@@ -29,7 +29,10 @@ using Protocols::InteractionModel::Status;
 // Mock Error List generated for sample application usage.
 const ClosureErrorEnum kCurrentErrorList[] = {
     {
-        ClosureErrorEnum::kBlocked,
+        ClosureErrorEnum::kPhysicallyBlocked,
+    },
+    {
+        ClosureErrorEnum::kBlockedBySensor,
     },
     {
         ClosureErrorEnum::kInternalInterference,
@@ -93,8 +96,8 @@ Protocols::InteractionModel::Status ClosureControlDelegate::Stop()
 }
 
 // Return default success, will add command handling in next phase
-Protocols::InteractionModel::Status ClosureControlDelegate::MoveTo(const Optional<TargetPositionEnum> & position,
-                                                                   const Optional<TargetLatchEnum> & latch,
+Protocols::InteractionModel::Status ClosureControlDelegate::MoveTo(const Optional<TargetPositionEnum> & tag,
+                                                                   const Optional<bool> & latch,
                                                                    const Optional<Globals::ThreeLevelAutoEnum> & speed)
 {
     return Status::Success;
