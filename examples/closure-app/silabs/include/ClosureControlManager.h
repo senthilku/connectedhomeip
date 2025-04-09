@@ -84,7 +84,7 @@ public:
      *
      ***************************************************************************/
 
-     /**
+    /**
      * @brief Initializes the manager, fetch the featuremap
      * @return return CHIP_NO_ERROR on success , CHIP_FAILURE on failure
      */

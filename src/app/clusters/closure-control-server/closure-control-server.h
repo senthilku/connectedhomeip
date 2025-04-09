@@ -110,7 +110,6 @@ public:
     bool HasFeature(Feature aFeatures) const;
     bool SupportsOptAttr(OptionalAttribute aOptionalAttrs) const;
 
-
     // Attribute setters
     /**
      * @brief Set Main State.

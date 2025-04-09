@@ -132,7 +132,6 @@ void ClosureControlManager::HandleCountdownTimeExpired()
     MainStateEnum state = mpClosureControlInstance->GetMainState();
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 
-
     if (state == MainStateEnum::kCalibrating)
     {
         mCalibratingTime = 0;
@@ -241,7 +240,7 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
         VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(tag.Value()) != TargetPositionEnum::kUnknownEnumValue,
                             Status::ConstraintError);
 
-        if(features.Has(Feature::kPositioning))
+        if (features.Has(Feature::kPositioning))
         {
             VerifyOrReturnValue(CheckErrorondevice(), Status::Failure);
 
@@ -263,7 +262,7 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
     {
         VerifyOrReturnValue(latch.Value() == true || latch.Value() == false, Status::ConstraintError);
 
-        if(features.Has(Feature::kMotionLatching))
+        if (features.Has(Feature::kMotionLatching))
         {
             VerifyOrReturnValue(isManualLatch, Status::InvalidAction);
             if (overallState.latch.Value() != latch.Value())
@@ -278,14 +277,12 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
     {
         VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(speed.Value()) != Globals::ThreeLevelAutoEnum::kUnknownEnumValue,
                             Status::ConstraintError);
-        if(features.Has(Feature::kSpeed))
+        if (features.Has(Feature::kSpeed))
         {
             overallTarget.speed = speed;
             motionNeeded        = true;
         }
     }
-
-
 
     // If device is already at TargetState ,no Action is required will give Status::Success
     VerifyOrReturnValue(motionNeeded || latchNeeded, Status::Success);
@@ -316,7 +313,6 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
         mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleWaitforMotionCountDown));
         mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
         chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
 
         (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
     }
