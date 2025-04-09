@@ -68,7 +68,7 @@ public:
     static void AppTaskMain(void * pvParameter);
 
     CHIP_ERROR StartAppTask();
-    
+
     /**
      * @brief Callbacks for Action intiated and completed
      *

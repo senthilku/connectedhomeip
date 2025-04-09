@@ -25,7 +25,7 @@ namespace chip {
 namespace app {
 namespace Clusters {
 namespace ClosureControl {
-    
+
 inline PositioningEnum getStatePositionFromTarget(TargetPositionEnum tagPosition)
 {
     switch (tagPosition)
@@ -100,11 +100,11 @@ struct GenericOverallState : public Structs::OverallStateStruct::Type
         Set(overallState.positioning, overallState.latch, overallState.speed, overallState.secureState);
         return *this;
     }
-    
+
     GenericOverallState & operator=(const GenericOverallTarget & overallTarget)
     {
         GenericOverallState overallState;
-        
+
         if(overallTarget.position.HasValue())
         {
             overallState.positioning.Value() = getStatePositionFromTarget(overallTarget.position.Value());
@@ -127,7 +127,7 @@ struct GenericOverallState : public Structs::OverallStateStruct::Type
         speed       = speedValue;
         secureState = secureStateValue;
     }
-    
+
     void Set(Optional<TargetPositionEnum> positionValue = NullOptional,
             Optional<bool> latchValue = NullOptional,
             Optional<Globals::ThreeLevelAutoEnum> speedValue = NullOptional)

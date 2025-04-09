@@ -50,13 +50,13 @@ public:
     const uint32_t kExampleCalibrateCountDown = 10;
     const uint32_t kExampleMotionCountDown = 15;
     const uint32_t kExampleWaitforMotionCountDown = 15;
-    
+
     app::DataModel::Nullable<uint32_t> mCountDownTime;
-    
+
     typedef void (*Callback_fn_initiated)(Action_t action);
     typedef void (*Callback_fn_completed)(Action_t action);
     void SetCallbacks(Callback_fn_initiated aActionInitiated_CB, Callback_fn_completed aActionCompleted_CB);
-    
+
     void SetClosureControlInstance(ClosureControl::Instance & instance);
     Instance * GetClosureControlInstance();
 
@@ -104,7 +104,7 @@ public:
      * @return Protocols::InteractionModel::Status - success or failure
      */
     Protocols::InteractionModel::Status HandleMotion(bool latchNeeded, bool NewTarget);
-    
+
 private:
 
     /***************************************************************************
@@ -112,10 +112,10 @@ private:
      * ClosureControlManager specific variables
      *
      ***************************************************************************/
-    
+
     // Need the following so can determine which features are supported
     ClosureControl::Instance * mpClosureControlInstance = nullptr;
-    
+
     bool isManualLatch = false;
     /**
      * @brief Checks if device is error state or not and sets mainstate to error.
@@ -125,7 +125,7 @@ private:
     bool CheckErrorondevice();
 
     static ClosureControlManager sClosureCtrlMgr;
-    
+
     Callback_fn_initiated mActionInitiated_CB;
     Callback_fn_completed mActionCompleted_CB;
 };
