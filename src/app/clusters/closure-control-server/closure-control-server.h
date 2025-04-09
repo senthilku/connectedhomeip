@@ -109,7 +109,7 @@ public:
 
     bool HasFeature(Feature aFeatures) const;
     bool SupportsOptAttr(OptionalAttribute aOptionalAttrs) const;
-    
+
 
     // Attribute setters
     /**
@@ -158,7 +158,7 @@ public:
      * @return Current OverallTarget.
      */
     const GenericOverallTarget & GetOverallTarget() const;
-    
+
     /**
      * @brief Get Featuremap.
      * @return Current Featuremap.

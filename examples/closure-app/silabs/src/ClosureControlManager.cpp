@@ -56,13 +56,13 @@ Instance * ClosureControlManager::GetClosureControlInstance()
     return mpClosureControlInstance;
 }
 
-CHIP_ERROR ClosureControlManager::Init() 
+CHIP_ERROR ClosureControlManager::Init()
 {
-    
+
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     features = mpClosureControlInstance->GetFeatures();
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-    
+
     return CHIP_NO_ERROR;
 }
 
@@ -85,7 +85,7 @@ static void onOperationalStateTimerTick(System::Layer * systemLayer, void * data
     ClosureControlManager * delegate = reinterpret_cast<ClosureControlManager *>(data);
 
     Instance * instance = delegate->GetClosureControlInstance();
-    
+
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     MainStateEnum state = instance->GetMainState();
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
@@ -131,7 +131,7 @@ void ClosureControlManager::HandleCountdownTimeExpired()
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     MainStateEnum state = mpClosureControlInstance->GetMainState();
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-    
+
 
     if (state == MainStateEnum::kCalibrating)
     {
@@ -148,10 +148,10 @@ void ClosureControlManager::HandleCountdownTimeExpired()
             mActionCompleted_CB(MOVE_ACTION);
         }
     }
-    
+
     (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
     mCountDownTime.SetNull();
-    
+
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     mpClosureControlInstance->SetMainState(MainStateEnum::kStopped);
     mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
@@ -227,7 +227,7 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
 {
     bool motionNeeded = false;
     bool latchNeeded  = false;
-    
+
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     MainStateEnum state                = mpClosureControlInstance->GetMainState();
     GenericOverallTarget overallTarget = mpClosureControlInstance->GetOverallTarget();
@@ -240,8 +240,8 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
     {
         VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(tag.Value()) != TargetPositionEnum::kUnknownEnumValue,
                             Status::ConstraintError);
-        
-        if(features.Has(Feature::kPositioning)) 
+
+        if(features.Has(Feature::kPositioning))
         {
             VerifyOrReturnValue(CheckErrorondevice(), Status::Failure);
 
@@ -262,7 +262,7 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
     if (latch.HasValue())
     {
         VerifyOrReturnValue(latch.Value() == true || latch.Value() == false, Status::ConstraintError);
-        
+
         if(features.Has(Feature::kMotionLatching))
         {
             VerifyOrReturnValue(isManualLatch, Status::InvalidAction);
@@ -289,7 +289,7 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
 
     // If device is already at TargetState ,no Action is required will give Status::Success
     VerifyOrReturnValue(motionNeeded || latchNeeded, Status::Success);
-    
+
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     mpClosureControlInstance->SetOverallTarget(overallTarget);
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
@@ -316,8 +316,8 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
         mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleWaitforMotionCountDown));
         mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
         chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-        
-        
+
+
         (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
     }
     
@@ -327,16 +327,16 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
 Protocols::InteractionModel::Status ClosureControlManager::Calibrate()
 {
     mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleCalibrateCountDown));
-    
+
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-    
+
     if (mActionInitiated_CB)
     {
         mActionInitiated_CB(CALIBRATE_ACTION);
     }
-    
+
     (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
     return Status::Success;
 }
@@ -344,7 +344,7 @@ Protocols::InteractionModel::Status ClosureControlManager::Calibrate()
 Protocols::InteractionModel::Status ClosureControlManager::HandleMotion(bool latchNeeded, bool NewTarget)
 {
     Action_t action = INVALID_ACTION;
-    
+
     // Target changes when target is in motion
     if (NewTarget)
     {
@@ -362,13 +362,13 @@ Protocols::InteractionModel::Status ClosureControlManager::HandleMotion(bool lat
             action = MOVE_ACTION;
         }
     }
-    
+
     mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleMotionCountDown));
-    
+
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-    
+
     (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
 
     if (mActionInitiated_CB)

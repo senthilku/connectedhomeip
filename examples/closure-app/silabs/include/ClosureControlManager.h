@@ -68,7 +68,7 @@ public:
     Protocols::InteractionModel::Status MoveTo(const Optional<TargetPositionEnum> & tag, const Optional<bool> & latch,
                                                const Optional<Globals::ThreeLevelAutoEnum> & speed) override;
     Protocols::InteractionModel::Status Calibrate() override;
-    
+
     CHIP_ERROR StartCurrentErrorListRead() override;
     CHIP_ERROR GetCurrentErrorListAtIndex(size_t Index, ClosureErrorEnum & closureError) override;
     CHIP_ERROR EndCurrentErrorListRead() override;
@@ -83,7 +83,7 @@ public:
      * ClosureControlDelegate specific methods
      *
      ***************************************************************************/
-    
+
      /**
      * @brief Initializes the manager, fetch the featuremap
      * @return return CHIP_NO_ERROR on success , CHIP_FAILURE on failure
@@ -91,7 +91,7 @@ public:
     CHIP_ERROR Init();
 
     void ClosureControlAttributeChangeHandler(EndpointId endpointId, AttributeId attributeId);
-    
+
     /**
      * @brief Handles the countdown timer expiration event
      */

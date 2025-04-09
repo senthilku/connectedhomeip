@@ -191,7 +191,7 @@ const GenericOverallTarget & Instance::GetOverallTarget() const
     return mOverallTarget;
 }
 
-const BitMask<Feature> Instance::GetFeatures() const 
+const BitMask<Feature> Instance::GetFeatures() const
 {
     return mFeatures;
 }
