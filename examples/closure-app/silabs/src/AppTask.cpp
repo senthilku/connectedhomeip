@@ -20,8 +20,8 @@
 #include "AppTask.h"
 #include "AppConfig.h"
 #include "AppEvent.h"
-#include "ClosureControlManager.h"
 #include "LEDWidget.h"
+#include "ClosureControlManager.h"
 
 #ifdef DISPLAY_ENABLED
 #include "lcd.h"
@@ -73,28 +73,13 @@ using namespace ::chip::DeviceLayer::Silabs;
 using namespace ::chip::DeviceLayer::Internal;
 using namespace chip::TLV;
 
-<<<<<<< HEAD
-namespace chip {
-namespace app {
-namespace Clusters {
-namespace ClosureControl {
-
-static chip::BitMask<Feature> sFeatureMap(Feature::kCalibration,Feature::kPositioning,Feature::kMotionLatching,Feature::kSpeed);
-
-} // namespace ClosureControl
-} // namespace Clusters
-} // namespace app
-} // namespace chip
-
-=======
->>>>>>> 5f4c0cb946... Closure App TODO task completion
 AppTask AppTask::sAppTask;
 
 const Clusters::Descriptor::Structs::SemanticTagStruct::Type gEp1TagList[] = {
     { .namespaceID = kNamespaceClosure,
       .tag         = kNamespaceClosureRow,
       .label       = chip::MakeOptional(DataModel::Nullable<chip::CharSpan>("Closure.Covering"_span)) },
-};
+    };
 
 void ApplicationInit()
 {
@@ -234,4 +219,5 @@ void AppTask::ActionCompleted(ClosureControl::ClosureControlManager::Action_t ac
     {
         SILABS_LOG("Invalid Action");
     }
+
 }

@@ -191,6 +191,11 @@ const GenericOverallTarget & Instance::GetOverallTarget() const
     return mOverallTarget;
 }
 
+const BitMask<Feature> Instance::GetFeatures() const 
+{
+    return mFeatures;
+}
+
 CHIP_ERROR Instance::PostOperationalErrorEvent(const DataModel::List<const ClosureErrorEnum> errorState)
 {
 

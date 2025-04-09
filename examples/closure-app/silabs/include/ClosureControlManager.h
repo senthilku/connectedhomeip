@@ -68,6 +68,10 @@ public:
     Protocols::InteractionModel::Status MoveTo(const Optional<TargetPositionEnum> & tag, const Optional<bool> & latch,
                                                const Optional<Globals::ThreeLevelAutoEnum> & speed) override;
     Protocols::InteractionModel::Status Calibrate() override;
+    
+    CHIP_ERROR StartCurrentErrorListRead() override;
+    CHIP_ERROR GetCurrentErrorListAtIndex(size_t Index, ClosureErrorEnum & closureError) override;
+    CHIP_ERROR EndCurrentErrorListRead() override;
 
     // ------------------------------------------------------------------
     // Get attribute methods
@@ -79,13 +83,15 @@ public:
      * ClosureControlDelegate specific methods
      *
      ***************************************************************************/
-    CHIP_ERROR StartCurrentErrorListRead() override;
-    CHIP_ERROR GetCurrentErrorListAtIndex(size_t Index, ClosureErrorEnum & closureError) override;
-    CHIP_ERROR EndCurrentErrorListRead() override;
     
-    void ClosureControlAttributeChangeHandler(EndpointId endpointId, AttributeId attributeId);
+     /**
+     * @brief Initializes the manager, fetch the featuremap
+     * @return return CHIP_NO_ERROR on success , CHIP_FAILURE on failure
+     */
+    CHIP_ERROR Init();
 
     void ClosureControlAttributeChangeHandler(EndpointId endpointId, AttributeId attributeId);
+    
     /**
      * @brief Handles the countdown timer expiration event
      */
@@ -113,6 +119,7 @@ private:
 
     // Need the following so can determine which features are supported
     ClosureControl::Instance * mpClosureControlInstance = nullptr;
+    BitMask<Feature> features;
 
     bool isManualLatch = false;
     /**
