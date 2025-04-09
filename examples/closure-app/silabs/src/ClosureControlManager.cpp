@@ -72,7 +72,7 @@ DataModel::Nullable<uint32_t> ClosureControlManager::GetCountdownTime()
     if (mCountDownTime.IsNull())
         return DataModel::NullNullable;
 
-    return DataModel::MakeNullable((uint32_t) (mCountDownTime.Value() - (mMovingTime + mCalibratingTime) ));
+    return DataModel::MakeNullable((uint32_t) (mCountDownTime.Value() - (mMovingTime + mCalibratingTime)));
 }
 
 static void onOperationalStateTimerTick(System::Layer * systemLayer, void * data)
@@ -99,8 +99,9 @@ static void onOperationalStateTimerTick(System::Layer * systemLayer, void * data
         if (state == MainStateEnum::kWaitingForMotion)
         {
             delegate->mMovingTime++;
-            if(delegate->IsDeviceReadytoMove()) {
-                delegate->HandleMotion(false,true);
+            if (delegate->IsDeviceReadytoMove())
+            {
+                delegate->HandleMotion(false, true);
             }
         }
     }
@@ -125,11 +126,13 @@ void ClosureControlManager::HandleCountdownTimeExpired()
 
     MainStateEnum state = mpClosureControlInstance->GetMainState();
 
-    if(state == MainStateEnum::kCalibrating) {
+    if (state == MainStateEnum::kCalibrating)
+    {
         mCalibratingTime = 0;
     }
 
-    if(state == MainStateEnum::kMoving) {
+    if (state == MainStateEnum::kMoving)
+    {
         mpClosureControlInstance->PostMovementCompletedEvent();
         if (mActionCompleted_CB)
         {
@@ -175,15 +178,17 @@ Protocols::InteractionModel::Status ClosureControlManager::Stop()
 
     (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
     chip::DeviceLayer::PlatformMgr().LockChipStack();
-    MainStateEnum state              = mpClosureControlInstance->GetMainState();
+    MainStateEnum state = mpClosureControlInstance->GetMainState();
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
     CHIP_ERROR err = CHIP_NO_ERROR;
 
-    if(state == MainStateEnum::kCalibrating) {
+    if (state == MainStateEnum::kCalibrating)
+    {
         mCalibratingTime = 0;
     }
 
-    if((state == MainStateEnum::kMoving)) {
+    if ((state == MainStateEnum::kMoving))
+    {
         mMovingTime = 0;
     }
 
@@ -211,7 +216,7 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
                                                                   const Optional<Globals::ThreeLevelAutoEnum> & speed)
 {
     bool motionNeeded = false;
-    bool latchNeeded = false;
+    bool latchNeeded  = false;
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     MainStateEnum state                = mpClosureControlInstance->GetMainState();
     GenericOverallTarget overallTarget = mpClosureControlInstance->GetOverallTarget();
@@ -225,14 +230,17 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
         VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(tag.Value()) != TargetPositionEnum::kUnknownEnumValue,
                             Status::ConstraintError);
         VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kPositioning), Status::Success);
-        VerifyOrReturnValue(CheckErrorondevice(),Status::Failure);
+        VerifyOrReturnValue(CheckErrorondevice(), Status::Failure);
 
-        if(overallState.positioning.Value() == getStatePositionFromTarget(tag.Value()) ) {
-        chip::DeviceLayer::PlatformMgr().LockChipStack();
+        if (overallState.positioning.Value() == getStatePositionFromTarget(tag.Value()))
+        {
+            chip::DeviceLayer::PlatformMgr().LockChipStack();
             mpClosureControlInstance->SetMainState(MainStateEnum::kStopped);
-        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-        } else {
-            motionNeeded = true;
+            chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+        }
+        else
+        {
+            motionNeeded           = true;
             overallTarget.position = tag;
         }
     }
@@ -242,8 +250,9 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
         VerifyOrReturnValue(latch.Value() == true || latch.Value() == false, Status::ConstraintError);
         VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kMotionLatching), Status::Success);
         VerifyOrReturnValue(isManualLatch, Status::InvalidAction);
-        if(overallState.latch.Value() != latch.Value() ) {
-            latchNeeded = true;
+        if (overallState.latch.Value() != latch.Value())
+        {
+            latchNeeded         = true;
             overallTarget.latch = latch;
         }
     }
@@ -260,15 +269,17 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
     mpClosureControlInstance->SetOverallTarget(overallTarget);
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 
-    //If device is already at TargetState ,no Action is required will give Status::Success
-    VerifyOrReturnValue(motionNeeded || latchNeeded,Status::Success);
+    // If device is already at TargetState ,no Action is required will give Status::Success
+    VerifyOrReturnValue(motionNeeded || latchNeeded, Status::Success);
 
     if (IsDeviceReadytoMove())
     {
         if (state == MainStateEnum::kMoving || state == MainStateEnum::kWaitingForMotion)
         {
             return HandleMotion(latchNeeded, true);
-        } else {
+        }
+        else
+        {
             return HandleMotion(latchNeeded, false);
             chip::DeviceLayer::PlatformMgr().LockChipStack();
             auto err = mpClosureControlInstance->SetMainState(MainStateEnum::kMoving);
@@ -304,15 +315,20 @@ Protocols::InteractionModel::Status ClosureControlManager::Calibrate()
 Protocols::InteractionModel::Status ClosureControlManager::HandleMotion(bool latchNeeded, bool NewTarget)
 {
     Action_t action = INVALID_ACTION;
-    //Target changes when target is in motion
+    // Target changes when target is in motion
     if (NewTarget)
     {
         (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
         action = TARGET_CHANGE_ACTION;
-    } else {
-        if (latchNeeded) {
+    }
+    else
+    {
+        if (latchNeeded)
+        {
             action = MOVE_AND_LATCH_ACTION;
-        } else {
+        }
+        else
+        {
             action = MOVE_ACTION;
         }
     }
@@ -352,9 +368,10 @@ void ClosureControlManager::ClosureControlAttributeChangeHandler(EndpointId endp
 
 bool ClosureControlManager::CheckErrorondevice()
 {
-    //TODO: derive error list for currenterrorlist
+    // TODO: derive error list for currenterrorlist
     bool errorList = false;
-    if (errorList) {
+    if (errorList)
+    {
         chip::DeviceLayer::PlatformMgr().LockChipStack();
         mpClosureControlInstance->SetMainState(MainStateEnum::kError);
         chip::DeviceLayer::PlatformMgr().UnlockChipStack();

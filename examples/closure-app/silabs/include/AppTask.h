@@ -74,8 +74,8 @@ public:
      *
      * @param btnAction action - type of closure action
      */
-    static void ActionInitiated(chip::app::Clusters::ClosureControl::ClosureControlManager::Action_t  aAction);
-    static void ActionCompleted(chip::app::Clusters::ClosureControl::ClosureControlManager::Action_t  aAction);
+    static void ActionInitiated(chip::app::Clusters::ClosureControl::ClosureControlManager::Action_t aAction);
+    static void ActionCompleted(chip::app::Clusters::ClosureControl::ClosureControlManager::Action_t aAction);
 
     /**
      * @brief Event handler when a button is pressed

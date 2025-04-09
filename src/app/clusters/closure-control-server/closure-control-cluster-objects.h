@@ -29,20 +29,20 @@ namespace ClosureControl {
 inline PositioningEnum getStatePositionFromTarget(TargetPositionEnum tagPosition)
 {
     switch (tagPosition)
-        {
-        case TargetPositionEnum::kCloseInFull:
-            return PositioningEnum::kFullyClosed;
-        case TargetPositionEnum::kOpenInFull:
-            return PositioningEnum::kFullyOpened;
-        case TargetPositionEnum::kPedestrian:
-            return PositioningEnum::kOpenedForPedestrian;
-        case TargetPositionEnum::kVentilation:
-            return PositioningEnum::kOpenedForVentilation;
-        case TargetPositionEnum::kSignature:
-            return PositioningEnum::kOpenedAtSignature;
-        default:
-            break;
-        }
+    {
+    case TargetPositionEnum::kCloseInFull:
+        return PositioningEnum::kFullyClosed;
+    case TargetPositionEnum::kOpenInFull:
+        return PositioningEnum::kFullyOpened;
+    case TargetPositionEnum::kPedestrian:
+        return PositioningEnum::kOpenedForPedestrian;
+    case TargetPositionEnum::kVentilation:
+        return PositioningEnum::kOpenedForVentilation;
+    case TargetPositionEnum::kSignature:
+        return PositioningEnum::kOpenedAtSignature;
+    default:
+        break;
+    }
     return PositioningEnum::kUnknownEnumValue;
 }
 
@@ -51,8 +51,7 @@ inline PositioningEnum getStatePositionFromTarget(TargetPositionEnum tagPosition
  */
 struct GenericOverallTarget : public Structs::OverallTargetStruct::Type
 {
-    GenericOverallTarget(Optional<TargetPositionEnum> positionValue       = NullOptional,
-                         Optional<bool> latchValue                        = NullOptional,
+    GenericOverallTarget(Optional<TargetPositionEnum> positionValue = NullOptional, Optional<bool> latchValue = NullOptional,
                          Optional<Globals::ThreeLevelAutoEnum> speedValue = NullOptional)
     {
         Set(positionValue, latchValue, speedValue);
@@ -105,7 +104,7 @@ struct GenericOverallState : public Structs::OverallStateStruct::Type
     {
         GenericOverallState overallState;
 
-        if(overallTarget.position.HasValue())
+        if (overallTarget.position.HasValue())
         {
             overallState.positioning.Value() = getStatePositionFromTarget(overallTarget.position.Value());
         }
@@ -117,10 +116,10 @@ struct GenericOverallState : public Structs::OverallStateStruct::Type
         return *this;
     }
 
-    void Set(Optional<DataModel::Nullable<PositioningEnum>> positioningValue = NullOptional,
-             Optional<DataModel::Nullable<bool>> latchValue = NullOptional,
+    void Set(Optional<DataModel::Nullable<PositioningEnum>> positioningValue       = NullOptional,
+             Optional<DataModel::Nullable<bool>> latchValue                        = NullOptional,
              Optional<DataModel::Nullable<Globals::ThreeLevelAutoEnum>> speedValue = NullOptional,
-             Optional<DataModel::Nullable<bool>> secureStateValue = NullOptional)
+             Optional<DataModel::Nullable<bool>> secureStateValue                  = NullOptional)
     {
         positioning = positioningValue;
         latch       = latchValue;
@@ -128,11 +127,10 @@ struct GenericOverallState : public Structs::OverallStateStruct::Type
         secureState = secureStateValue;
     }
 
-    void Set(Optional<TargetPositionEnum> positionValue = NullOptional,
-            Optional<bool> latchValue = NullOptional,
-            Optional<Globals::ThreeLevelAutoEnum> speedValue = NullOptional)
+    void Set(Optional<TargetPositionEnum> positionValue = NullOptional, Optional<bool> latchValue = NullOptional,
+             Optional<Globals::ThreeLevelAutoEnum> speedValue = NullOptional)
     {
-        if(positionValue.HasValue())
+        if (positionValue.HasValue())
         {
             positioning.Value() = getStatePositionFromTarget(positionValue.Value());
         }
@@ -140,8 +138,8 @@ struct GenericOverallState : public Structs::OverallStateStruct::Type
         {
             positioning = NullOptional;
         }
-        latch       = latchValue;
-        speed       = speedValue;
+        latch = latchValue;
+        speed = speedValue;
     }
 
     bool operator==(const Structs::OverallStateStruct::Type & rhs) const

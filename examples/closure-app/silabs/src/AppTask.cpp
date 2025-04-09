@@ -20,8 +20,8 @@
 #include "AppTask.h"
 #include "AppConfig.h"
 #include "AppEvent.h"
-#include "LEDWidget.h"
 #include "ClosureControlManager.h"
+#include "LEDWidget.h"
 
 #ifdef DISPLAY_ENABLED
 #include "lcd.h"
@@ -94,7 +94,7 @@ const Clusters::Descriptor::Structs::SemanticTagStruct::Type gEp1TagList[] = {
     { .namespaceID = kNamespaceClosure,
       .tag         = kNamespaceClosureRow,
       .label       = chip::MakeOptional(DataModel::Nullable<chip::CharSpan>("Closure.Covering"_span)) },
-    };
+};
 
 void ApplicationInit()
 {
@@ -234,5 +234,4 @@ void AppTask::ActionCompleted(ClosureControl::ClosureControlManager::Action_t ac
     {
         SILABS_LOG("Invalid Action");
     }
-
 }

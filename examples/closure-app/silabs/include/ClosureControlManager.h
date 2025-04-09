@@ -33,7 +33,6 @@ namespace ClosureControl {
 class ClosureControlManager : public ClosureControl::Delegate
 {
 public:
-
     enum Action_t : uint8_t
     {
         MOVE_ACTION = 0,
@@ -45,10 +44,10 @@ public:
         INVALID_ACTION
     };
 
-    uint32_t mMovingTime = 0;
-    uint32_t mCalibratingTime = 0;
-    const uint32_t kExampleCalibrateCountDown = 10;
-    const uint32_t kExampleMotionCountDown = 15;
+    uint32_t mMovingTime                          = 0;
+    uint32_t mCalibratingTime                     = 0;
+    const uint32_t kExampleCalibrateCountDown     = 10;
+    const uint32_t kExampleMotionCountDown        = 15;
     const uint32_t kExampleWaitforMotionCountDown = 15;
 
     app::DataModel::Nullable<uint32_t> mCountDownTime;
@@ -106,7 +105,6 @@ public:
     Protocols::InteractionModel::Status HandleMotion(bool latchNeeded, bool NewTarget);
 
 private:
-
     /***************************************************************************
      *
      * ClosureControlManager specific variables
