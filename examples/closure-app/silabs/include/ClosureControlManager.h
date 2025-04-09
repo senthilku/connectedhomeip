@@ -33,7 +33,32 @@ namespace ClosureControl {
 class ClosureControlManager : public ClosureControl::Delegate
 {
 public:
+
+    enum Action_t : uint8_t
+    {
+        MOVE_ACTION = 0,
+        MOVE_AND_LATCH_ACTION,
+        STOP_ACTION,
+        CALIBRATE_ACTION,
+        TARGET_CHANGE_ACTION,
+
+        INVALID_ACTION
+    };
+
+    uint32_t mMovingTime = 0;
+    uint32_t mCalibratingTime = 0;
+    const uint32_t kExampleCalibrateCountDown = 10;
+    const uint32_t kExampleMotionCountDown = 15;
+    const uint32_t kExampleWaitforMotionCountDown = 15;
+    
+    app::DataModel::Nullable<uint32_t> mCountDownTime;
+    
+    typedef void (*Callback_fn_initiated)(Action_t action);
+    typedef void (*Callback_fn_completed)(Action_t action);
+    void SetCallbacks(Callback_fn_initiated aActionInitiated_CB, Callback_fn_completed aActionCompleted_CB);
+    
     void SetClosureControlInstance(ClosureControl::Instance & instance);
+    Instance * GetClosureControlInstance();
 
     /*********************************************************************************
      *
@@ -62,28 +87,51 @@ public:
     void ClosureControlAttributeChangeHandler(EndpointId endpointId, AttributeId attributeId);
 
     void ClosureControlAttributeChangeHandler(EndpointId endpointId, AttributeId attributeId);
-
+    /**
+     * @brief Handles the countdown timer expiration event
+     */
+    void HandleCountdownTimeExpired();
+    /**
+     * @brief Checks if the device can move or need pre-motion stages to complete
+     * @return true if device is ready to move
+     *         false if device is not ready to move
+     */
+    bool IsDeviceReadytoMove();
+    /**
+     * @brief Handles the motion request of Closure
+     * @param [in] latchNeeded - true if latch is needed
+     * @param [in] NewTarget - true if target is changed
+     * @return Protocols::InteractionModel::Status - success or failure
+     */
+    Protocols::InteractionModel::Status HandleMotion(bool latchNeeded, bool NewTarget);
+    
 private:
-    friend ClosureControlManager & ClosureCtrlMgr();
 
     /***************************************************************************
      *
-     * ClosureControlDelegate specific variables
+     * ClosureControlManager specific variables
      *
      ***************************************************************************/
-
+    
     // Need the following so can determine which features are supported
     ClosureControl::Instance * mpClosureControlInstance = nullptr;
-    bool IsManualLatch();
-    bool IsDeviceReadytoMove();
+    
+    bool isManualLatch = false;
+    /**
+     * @brief Checks if device is error state or not and sets mainstate to error.
+     * @return true if device is error state
+     *         false if device is not in error state
+     */
+    bool CheckErrorondevice();
 
     static ClosureControlManager sClosureCtrlMgr;
+    
+    Callback_fn_initiated mActionInitiated_CB;
+    Callback_fn_completed mActionCompleted_CB;
 };
 
-inline ClosureControlManager & ClosureCtrlMgr()
-{
-    return ClosureControlManager::sClosureCtrlMgr;
-}
+ClosureControlManager * GetClosureControlManager();
+
 } // namespace ClosureControl
 } // namespace Clusters
 } // namespace app

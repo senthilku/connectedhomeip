@@ -21,6 +21,7 @@
 #include "AppConfig.h"
 #include "AppEvent.h"
 #include "LEDWidget.h"
+#include "ClosureControlManager.h"
 
 #ifdef DISPLAY_ENABLED
 #include "lcd.h"
@@ -57,6 +58,9 @@ constexpr chip::EndpointId kClosureEndpoint = 1;
 constexpr chip::EndpointId kClosurePanelEndpoint1 = 2;
 constexpr chip::EndpointId kClosurePanelEndpoint2 = 3;
 
+constexpr const uint8_t kNamespaceClosure    = 0x44;
+constexpr const uint8_t kNamespaceClosureRow = 0x0;
+
 } // namespace
 
 using namespace chip;
@@ -69,6 +73,7 @@ using namespace ::chip::DeviceLayer::Silabs;
 using namespace ::chip::DeviceLayer::Internal;
 using namespace chip::TLV;
 
+<<<<<<< HEAD
 namespace chip {
 namespace app {
 namespace Clusters {
@@ -81,7 +86,15 @@ static chip::BitMask<Feature> sFeatureMap(Feature::kCalibration,Feature::kPositi
 } // namespace app
 } // namespace chip
 
+=======
+>>>>>>> 5f4c0cb946... Closure App TODO task completion
 AppTask AppTask::sAppTask;
+
+const Clusters::Descriptor::Structs::SemanticTagStruct::Type gEp1TagList[] = {
+    { .namespaceID = kNamespaceClosure,
+      .tag         = kNamespaceClosureRow,
+      .label       = chip::MakeOptional(DataModel::Nullable<chip::CharSpan>("Closure.Covering"_span)) },
+    };
 
 void ApplicationInit()
 {
@@ -110,6 +123,8 @@ CHIP_ERROR AppTask::AppInit()
 #endif
 
     ApplicationInit();
+    SetTagList(/* endpoint= */ 1, Span<const Clusters::Descriptor::Structs::SemanticTagStruct::Type>(gEp1TagList));
+    GetClosureControlManager()->SetCallbacks(ActionInitiated, ActionCompleted);
 
 // Update the LCD with the Stored value. Show QR Code if not provisioned
 #ifdef DISPLAY_ENABLED
@@ -166,4 +181,58 @@ void AppTask::ButtonEventHandler(uint8_t button, uint8_t btnAction)
     button_event.ButtonEvent.Action = btnAction;
     button_event.Handler            = BaseApplication::ButtonHandler;
     AppTask::GetAppTask().PostEvent(&button_event);
+}
+
+void AppTask::ActionInitiated(ClosureControl::ClosureControlManager::Action_t action)
+{
+    SILABS_LOG("==================================================");
+    SILABS_LOG("ActionInitiated");
+    SILABS_LOG("==================================================");
+    // Action initiated,
+    if (action == ClosureControlManager::MOVE_ACTION)
+    {
+        SILABS_LOG("Starting Motion");
+    }
+    else if (action == ClosureControlManager::STOP_ACTION)
+    {
+        SILABS_LOG("Stoping Motion");
+    }
+    else if (action == ClosureControlManager::CALIBRATE_ACTION)
+    {
+        SILABS_LOG("Starting Calibration");
+    }
+    else if (action == ClosureControlManager::MOVE_AND_LATCH_ACTION)
+    {
+        SILABS_LOG("Starting Motion and Latch");
+    }
+    else if (action == ClosureControlManager::TARGET_CHANGE_ACTION)
+    {
+        SILABS_LOG("Target Change Initiated");
+    }
+    else
+    {
+        SILABS_LOG("Invalid Action");
+    }
+}
+
+void AppTask::ActionCompleted(ClosureControl::ClosureControlManager::Action_t action)
+{
+    // Action Completed
+    if (action == ClosureControlManager::MOVE_ACTION)
+    {
+        SILABS_LOG("Motion Completed");
+    }
+    else if (action == ClosureControlManager::MOVE_AND_LATCH_ACTION)
+    {
+        SILABS_LOG("Motion and Latch Completed");
+    }
+    else if (action == ClosureControlManager::TARGET_CHANGE_ACTION)
+    {
+        SILABS_LOG("Target Change Completed");
+    }
+    else
+    {
+        SILABS_LOG("Invalid Action");
+    }
+
 }

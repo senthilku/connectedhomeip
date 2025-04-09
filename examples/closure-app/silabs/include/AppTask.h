@@ -28,6 +28,7 @@
 
 #include "AppEvent.h"
 #include "BaseApplication.h"
+#include "ClosureControlManager.h"
 
 #include "FreeRTOS.h"
 #include "timers.h" // provides FreeRTOS timer support
@@ -67,6 +68,14 @@ public:
     static void AppTaskMain(void * pvParameter);
 
     CHIP_ERROR StartAppTask();
+    
+    /**
+     * @brief Callbacks for Action intiated and completed
+     *
+     * @param btnAction action - type of closure action
+     */
+    static void ActionInitiated(chip::app::Clusters::ClosureControl::ClosureControlManager::Action_t  aAction);
+    static void ActionCompleted(chip::app::Clusters::ClosureControl::ClosureControlManager::Action_t  aAction);
 
     /**
      * @brief Event handler when a button is pressed

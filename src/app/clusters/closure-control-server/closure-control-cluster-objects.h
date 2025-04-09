@@ -25,44 +25,26 @@ namespace chip {
 namespace app {
 namespace Clusters {
 namespace ClosureControl {
-
-/**
- * Structure represents the overall state of a closure control cluster derivation instance.
- */
-struct GenericOverallState : public Structs::OverallStateStruct::Type
+    
+inline PositioningEnum getStatePositionFromTarget(TargetPositionEnum tagPosition)
 {
-    GenericOverallState(Optional<DataModel::Nullable<PositioningEnum>> positioningValue       = NullOptional,
-                        Optional<DataModel::Nullable<bool>> latchValue                        = NullOptional,
-                        Optional<DataModel::Nullable<Globals::ThreeLevelAutoEnum>> speedValue = NullOptional,
-                        Optional<DataModel::Nullable<bool>> secureStateValue                  = NullOptional)
-    {
-        Set(positioningValue, latchValue, speedValue, secureStateValue);
-    }
-
-    GenericOverallState(const GenericOverallState & overallState) { *this = overallState; }
-
-    GenericOverallState & operator=(const GenericOverallState & overallState)
-    {
-        Set(overallState.positioning, overallState.latch, overallState.speed, overallState.secureState);
-        return *this;
-    }
-
-    void Set(Optional<DataModel::Nullable<PositioningEnum>> positioningValue = NullOptional,
-             Optional<DataModel::Nullable<bool>> latchValue = NullOptional,
-             Optional<DataModel::Nullable<Globals::ThreeLevelAutoEnum>> speedValue = NullOptional,
-             Optional<DataModel::Nullable<bool>> secureStateValue = NullOptional)
-    {
-        positioning = positioningValue;
-        latch       = latchValue;
-        speed       = speedValue;
-        secureState = secureStateValue;
-    }
-
-    bool operator==(const Structs::OverallStateStruct::Type & rhs) const
-    {
-        return positioning == rhs.positioning && latch == rhs.latch && speed == rhs.speed && secureState == rhs.secureState;
-    }
-};
+    switch (tagPosition)
+        {
+        case TargetPositionEnum::kCloseInFull:
+            return PositioningEnum::kFullyClosed;
+        case TargetPositionEnum::kOpenInFull:
+            return PositioningEnum::kFullyOpened;
+        case TargetPositionEnum::kPedestrian:
+            return PositioningEnum::kOpenedForPedestrian;
+        case TargetPositionEnum::kVentilation:
+            return PositioningEnum::kOpenedForVentilation;
+        case TargetPositionEnum::kSignature:
+            return PositioningEnum::kOpenedAtSignature;
+        default:
+            break;
+        }
+    return PositioningEnum::kUnknownEnumValue;
+}
 
 /**
  * Structure represents the overall target state of a closure control cluster derivation instance.
@@ -95,6 +77,76 @@ struct GenericOverallTarget : public Structs::OverallTargetStruct::Type
     bool operator==(const Structs::OverallTargetStruct::Type & rhs) const
     {
         return position == rhs.position && latch == rhs.latch && speed == rhs.speed;
+    }
+};
+
+/**
+ * Structure represents the overall state of a closure control cluster derivation instance.
+ */
+struct GenericOverallState : public Structs::OverallStateStruct::Type
+{
+    GenericOverallState(Optional<DataModel::Nullable<PositioningEnum>> positioningValue       = NullOptional,
+                        Optional<DataModel::Nullable<bool>> latchValue                        = NullOptional,
+                        Optional<DataModel::Nullable<Globals::ThreeLevelAutoEnum>> speedValue = NullOptional,
+                        Optional<DataModel::Nullable<bool>> secureStateValue                  = NullOptional)
+    {
+        Set(positioningValue, latchValue, speedValue, secureStateValue);
+    }
+
+    GenericOverallState(const GenericOverallState & overallState) { *this = overallState; }
+
+    GenericOverallState & operator=(const GenericOverallState & overallState)
+    {
+        Set(overallState.positioning, overallState.latch, overallState.speed, overallState.secureState);
+        return *this;
+    }
+    
+    GenericOverallState & operator=(const GenericOverallTarget & overallTarget)
+    {
+        GenericOverallState overallState;
+        
+        if(overallTarget.position.HasValue())
+        {
+            overallState.positioning.Value() = getStatePositionFromTarget(overallTarget.position.Value());
+        }
+        else
+        {
+            overallState.positioning = NullOptional;
+        }
+        Set(overallState.positioning, overallTarget.latch, overallTarget.speed);
+        return *this;
+    }
+
+    void Set(Optional<DataModel::Nullable<PositioningEnum>> positioningValue = NullOptional,
+             Optional<DataModel::Nullable<bool>> latchValue = NullOptional,
+             Optional<DataModel::Nullable<Globals::ThreeLevelAutoEnum>> speedValue = NullOptional,
+             Optional<DataModel::Nullable<bool>> secureStateValue = NullOptional)
+    {
+        positioning = positioningValue;
+        latch       = latchValue;
+        speed       = speedValue;
+        secureState = secureStateValue;
+    }
+    
+    void Set(Optional<TargetPositionEnum> positionValue = NullOptional,
+            Optional<bool> latchValue = NullOptional,
+            Optional<Globals::ThreeLevelAutoEnum> speedValue = NullOptional)
+    {
+        if(positionValue.HasValue())
+        {
+            positioning.Value() = getStatePositionFromTarget(positionValue.Value());
+        }
+        else
+        {
+            positioning = NullOptional;
+        }
+        latch       = latchValue;
+        speed       = speedValue;
+    }
+
+    bool operator==(const Structs::OverallStateStruct::Type & rhs) const
+    {
+        return positioning == rhs.positioning && latch == rhs.latch && speed == rhs.speed && secureState == rhs.secureState;
     }
 };
 

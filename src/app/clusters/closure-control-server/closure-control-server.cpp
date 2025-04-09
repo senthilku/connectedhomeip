@@ -216,8 +216,11 @@ CHIP_ERROR Instance::PostMovementCompletedEvent() {
         return CHIP_NO_ERROR;
     }
     
-    //TODO: should the countdown time set to 0 here.
-
+    auto overallTarget = GetOverallTarget();
+    GenericOverallState overallState;
+    overallState = overallTarget;
+    SetOverallState(overallState);
+    
     EventNumber eventNumber;
     CHIP_ERROR err = LogEvent(event, mDelegate.GetEndpointId(), eventNumber);
     if (CHIP_NO_ERROR != err)
@@ -411,10 +414,7 @@ Status Instance::HandleStop(HandlerContext & ctx, const Commands::Stop::Decodabl
     if (state == MainStateEnum::kStopped) 
     {
         return Status::Success;
-    }
-    
-    if ((state == MainStateEnum::kMoving) || (state == MainStateEnum::kWaitingForMotion))
-    {
+    } else {
         status = mDelegate.Stop();
         SetMainState(MainStateEnum::kStopped); 
     }
@@ -424,9 +424,13 @@ Status Instance::HandleStop(HandlerContext & ctx, const Commands::Stop::Decodabl
 
 Status Instance::HandleMoveTo(HandlerContext & ctx, const Commands::MoveTo::DecodableType & commandData)
 {
+
+    Status status = Status::Failure;
     MainStateEnum state = GetMainState();
-    VerifyOrReturnValue(CheckCommandStateCompatiblilty(Commands::Stop::Id,state), Status::InvalidInState);
-    return mDelegate.MoveTo(commandData.tag, commandData.latch, commandData.speed);
+    VerifyOrReturnValue(CheckCommandStateCompatiblilty(Commands::Stop::Id, state), Status::InvalidInState);
+    status = mDelegate.MoveTo(commandData.position, commandData.latch, commandData.speed);
+    return status;
+
 }
 
 Status Instance::HandleCalibrate(HandlerContext & ctx, const Commands::Calibrate::DecodableType & commandData)
@@ -442,8 +446,8 @@ Status Instance::HandleCalibrate(HandlerContext & ctx, const Commands::Calibrate
     
     if ((state == MainStateEnum::kStopped))
     {
-        status = mDelegate.Calibrate();
         SetMainState(MainStateEnum::kCalibrating);
+        status = mDelegate.Calibrate();
     }
     
     return status;

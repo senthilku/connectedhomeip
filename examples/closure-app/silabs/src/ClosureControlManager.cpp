@@ -18,6 +18,7 @@
 #include <ClosureControlManager.h>
 #include <app/clusters/closure-control-server/closure-control-server.h>
 #include <protocols/interaction_model/StatusCode.h>
+#include <system/SystemClock.h>
 
 using namespace chip;
 using namespace chip::app;
@@ -29,7 +30,10 @@ using Protocols::InteractionModel::Status;
 // Mock Error List generated for sample application usage.
 const ClosureErrorEnum kCurrentErrorList[] = {
     {
-        ClosureErrorEnum::kBlocked,
+        ClosureErrorEnum::kPhysicallyBlocked,
+    },
+    {
+        ClosureErrorEnum::kBlockedBySensor,
     },
     {
         ClosureErrorEnum::kInternalInterference,
@@ -42,52 +46,112 @@ const ClosureErrorEnum kCurrentErrorList[] = {
     },
 };
 
-std::unordered_map<TagPositionEnum, PositioningEnum> targetToStatePositionMap = {
-    {TagPositionEnum::kCloseInFull, PositioningEnum::kFullyClosed},
-    {TagPositionEnum::kOpenInFull, PositioningEnum::kFullyOpened},
-    {TagPositionEnum::kPedestrian, PositioningEnum::kOpenedForPedestrian},
-    {TagPositionEnum::kVentilation, PositioningEnum::kOpenedForVentilation},
-    {TagPositionEnum::kSignature, PositioningEnum::kOpenedAtSignature},
-};
-
-PositioningEnum getStatePositionFromTarget(TagPositionEnum tagPosition) {
-    auto it = targetToStatePositionMap.find(tagPosition);
-    if (it != targetToStatePositionMap.end()) {
-        return it->second;
-    } else {
-        return PositioningEnum::kUnknownEnumValue;
-    }
-}
-
-
 void ClosureControlManager::SetClosureControlInstance(ClosureControl::Instance & instance)
 {
     mpClosureControlInstance = &instance;
 }
 
-ClosureControlManager ClosureControlManager::sClosureCtrlMgr;
+Instance * ClosureControlManager::GetClosureControlInstance()
+{
+    return mpClosureControlInstance;
+}
+
+void ClosureControlManager::SetCallbacks(Callback_fn_initiated aActionInitiated_CB, Callback_fn_completed aActionCompleted_CB)
+{
+    mActionInitiated_CB = aActionInitiated_CB;
+    mActionCompleted_CB = aActionCompleted_CB;
+}
 
 /*********************************************************************************
  *
  * Methods implementing the ClosureControl::Delegate interace
  *
- *********************************************************************************/
-
-// Return default value, will add timers and attribute handling in next phase
+ *********************************************************************************/ 
 DataModel::Nullable<uint32_t> ClosureControlManager::GetCountdownTime()
 {
-    //TODO: handle countdown timer
-    return DataModel::NullNullable;
+    if (mCountDownTime.IsNull())
+        return DataModel::NullNullable;
+ 
+    return DataModel::MakeNullable((uint32_t) (mCountDownTime.Value() - (mMovingTime + mCalibratingTime) ));
+}
+ 
+static void onOperationalStateTimerTick(System::Layer * systemLayer, void * data)
+{
+    ClosureControlManager * delegate = reinterpret_cast<ClosureControlManager *>(data);
+ 
+    Instance * instance = delegate->GetClosureControlInstance();
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    MainStateEnum state = instance->GetMainState();
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+ 
+    auto countdown_time = delegate->GetCountdownTime();
+ 
+    if (countdown_time.IsNull() || (!countdown_time.IsNull() && countdown_time.Value() > 0))
+    {
+        if (state == MainStateEnum::kMoving)
+        {
+            delegate->mMovingTime++;
+        }
+        if (state == MainStateEnum::kCalibrating)
+        {
+            delegate->mCalibratingTime++;
+        }
+        if (state == MainStateEnum::kWaitingForMotion)
+        {
+            delegate->mMovingTime++;
+            if(delegate->IsDeviceReadytoMove()) {
+                delegate->HandleMotion(false,true);
+            }
+        }
+    }
+    else if (!countdown_time.IsNull() && countdown_time.Value() <= 0)
+    {
+        delegate->HandleCountdownTimeExpired();
+    }
+ 
+    if (state == MainStateEnum::kMoving || state == MainStateEnum::kCalibrating || state == MainStateEnum::kWaitingForMotion)
+    {
+        (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, delegate);
+    }
+    else
+    {
+        (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, delegate);
+    }
+}
+ 
+void ClosureControlManager::HandleCountdownTimeExpired()
+{
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    
+    MainStateEnum state = mpClosureControlInstance->GetMainState();
+    
+    if(state == MainStateEnum::kCalibrating) {
+        mCalibratingTime = 0;
+    }
+    
+    if(state == MainStateEnum::kMoving) {
+        mpClosureControlInstance->PostMovementCompletedEvent();
+        if (mActionCompleted_CB)
+        {
+            mActionCompleted_CB(MOVE_ACTION);
+        }
+    }
+    
+    mpClosureControlInstance->SetMainState(MainStateEnum::kStopped);
+    (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
+    mCountDownTime.SetNull();
+    mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
+    
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 }
 
-// Return default value, will add attribute handling in next phase
+// Errorlist is being read and data is locked, no update should happend to list
 CHIP_ERROR ClosureControlManager::StartCurrentErrorListRead()
 {
-    //Notify device that errorlist is being read and data should locked
     return CHIP_NO_ERROR;
 }
 
-//TODO: Return emualted error list, will add event handling along with Events
+// TODO: Return error list instead of emulated list
 CHIP_ERROR ClosureControlManager::GetCurrentErrorListAtIndex(size_t Index, ClosureErrorEnum & closureError)
 {
     if (Index >= MATTER_ARRAY_SIZE(kCurrentErrorList))
@@ -100,97 +164,166 @@ CHIP_ERROR ClosureControlManager::GetCurrentErrorListAtIndex(size_t Index, Closu
     return CHIP_NO_ERROR;
 }
 
-// Return default value, will add attribute handling in next phase
+// Errorlist read is completed and lock on data is removed
 CHIP_ERROR ClosureControlManager::EndCurrentErrorListRead()
 {
-    //Notify device that errorlist is being read completed and lock on data is removed
     return CHIP_NO_ERROR;
 }
 
-// Return default success, will add command handling in next phase
 Protocols::InteractionModel::Status ClosureControlManager::Stop()
 {
-    //TODO: device should stop the action
+    
+    (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    MainStateEnum state              = mpClosureControlInstance->GetMainState();
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    CHIP_ERROR err = CHIP_NO_ERROR;
+    
+    if(state == MainStateEnum::kCalibrating) {
+        mCalibratingTime = 0;
+    }
+    
+    if((state == MainStateEnum::kMoving)) {
+        mMovingTime = 0;
+    }
+
+    if (mActionInitiated_CB)
+    {
+        mActionInitiated_CB(CALIBRATE_ACTION);
+    }
+    
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    err = mpClosureControlInstance->PostMovementCompletedEvent();
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    VerifyOrReturnValue(err == CHIP_NO_ERROR, Status::Failure);
+    
+    mCountDownTime.SetNull();
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    
     return Status::Success;
 
 }
 
-// Return default success, will add command handling in next phase
-Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional<TagPositionEnum> & tag,
-                                                                   const Optional<TagLatchEnum> & latch,
-                                                                   const Optional<Globals::ThreeLevelAutoEnum> & speed)
+Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional<TargetPositionEnum> & tag,
+                                                                  const Optional<bool> & latch,
+                                                                  const Optional<Globals::ThreeLevelAutoEnum> & speed)
 {
-    MainStateEnum state = mpClosureControlInstance->GetMainState();
-    GenericOverallState overallState = mpClosureControlInstance->GetOverallState();
-
-    if(tag.HasValue()) {
-        VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(tag.Value()) != TagPositionEnum::kUnknownEnumValue,Status::ConstraintError);
-        VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kPositioning),Status::Success);
-        ChipLogDetail(DataManagement, "ClosureControlManager::positioning");
+    bool motionNeeded = false;
+    bool latchNeeded = false;
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    MainStateEnum state                = mpClosureControlInstance->GetMainState();
+    GenericOverallTarget overallTarget = mpClosureControlInstance->GetOverallTarget();
+    GenericOverallState overallState   = mpClosureControlInstance->GetOverallState();
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    
+    VerifyOrReturnValue(tag.HasValue() || latch.HasValue() || speed.HasValue(), Status::InvalidCommand);
+    
+    if (tag.HasValue())
+    {
+        VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(tag.Value()) != TargetPositionEnum::kUnknownEnumValue,
+                            Status::ConstraintError);
+        VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kPositioning), Status::Success);
+        VerifyOrReturnValue(CheckErrorondevice(),Status::Failure);
         
-        //TODO: CheckErrorondevice() -> if device error state move state to error and give failure
-        //TODO: IsDeviceReadytoMove()
-        
-        if ((state == MainStateEnum::kStopped) || (state == MainStateEnum::kError)) {
-            //TODO: set target for motion
+        if(overallState.positioning.Value() == getStatePositionFromTarget(tag.Value()) ) {
+        chip::DeviceLayer::PlatformMgr().LockChipStack();
+            mpClosureControlInstance->SetMainState(MainStateEnum::kStopped);
+        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+        } else {
+            motionNeeded = true;
+            overallTarget.position = tag;
         }
-        
-        if ((state == MainStateEnum::kWaitingForMotion) || (state == MainStateEnum::kMoving) )
+    }
+
+    if (latch.HasValue())
+    {
+        VerifyOrReturnValue(latch.Value() == true || latch.Value() == false, Status::ConstraintError);
+        VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kMotionLatching), Status::Success);
+        VerifyOrReturnValue(isManualLatch, Status::InvalidAction);
+        if(overallState.latch.Value() != latch.Value() ) {
+            latchNeeded = true;
+            overallTarget.latch = latch;
+        }
+    }
+
+    if (speed.HasValue())
+    {
+        VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(speed.Value()) != Globals::ThreeLevelAutoEnum::kUnknownEnumValue,
+                            Status::ConstraintError);
+        VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kSpeed), Status::Success);
+        overallTarget.speed = speed;
+    }
+    
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    mpClosureControlInstance->SetOverallTarget(overallTarget);
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    
+    //If device is already at TargetState ,no Action is required will give Status::Success
+    VerifyOrReturnValue(motionNeeded || latchNeeded,Status::Success);
+
+    if (IsDeviceReadytoMove())
+    {        
+        if (state == MainStateEnum::kMoving || state == MainStateEnum::kWaitingForMotion)
         {
-            //TODO: change target for motion
-        }
-
-        overallState.positioning.SetValue(getStatePositionFromTarget(tag.Value()));
-    }
-
-    if(latch.HasValue()){
-        VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(latch.Value()) == TagLatchEnum::kUnknownEnumValue,Status::ConstraintError);
-        VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kMotionLatching),Status::Success);
-        ChipLogDetail(DataManagement, "ClosureControlManager::latch");
-        VerifyOrReturnValue(IsManualLatch(),Status::InvalidAction);
-        
-        //TODO: device to perform latch operation
-        
-        if(latch.Value() == TagLatchEnum::kLatch){
-            overallState.latching.SetValue(LatchingEnum::kLatchedAndSecured);
-        }
-        if(latch.Value() == TagLatchEnum::kUnlatch){
-            overallState.latching.SetValue(LatchingEnum::kNotLatched);
+            return HandleMotion(latchNeeded, true);
+        } else {
+            return HandleMotion(latchNeeded, false);
+            chip::DeviceLayer::PlatformMgr().LockChipStack();
+            auto err = mpClosureControlInstance->SetMainState(MainStateEnum::kMoving);
+            chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+            VerifyOrReturnValue(err == CHIP_NO_ERROR, Status::Failure);      
         }
     }
-    
-    if(speed.HasValue()){
-        VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(speed.Value()) == Globals::ThreeLevelAutoEnum::kUnknownEnumValue,Status::ConstraintError);
-        VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kSpeed),Status::Success); 
-        ChipLogDetail(DataManagement, "ClosureControlManager::speed");
-        if(!(latch.HasValue() || tag.HasValue())) {
-            if ((state == MainStateEnum::kMoving) || (state == MainStateEnum::kWaitingForMotion) )
-            {
-                overallState.speed = speed;
-                //TODO: device to change speed
-            } else {
-                overallState.speed.SetValue(Globals::ThreeLevelAutoEnum::kAuto);
-            }
-        }
-    }
-    
-    mpClosureControlInstance->SetOverallState(overallState);
-
-    if(IsDeviceReadytoMove()) {
-        mpClosureControlInstance->SetMainState(MainStateEnum::kMoving);
-        //TODO: move the device
-    } else {
+    else
+    {
+        chip::DeviceLayer::PlatformMgr().LockChipStack();
         mpClosureControlInstance->SetMainState(MainStateEnum::kWaitingForMotion);
-        //TODO: device to wait for ready to move and the move the device.
+        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+        mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleWaitforMotionCountDown));
+        mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
+        (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
     }
     
     return Status::Success;
 }
 
-// Return default success, will add command handling in next phase
 Protocols::InteractionModel::Status ClosureControlManager::Calibrate()
 {
-    //TODO: Calibrate Device
+    mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleCalibrateCountDown));
+    mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
+    if (mActionInitiated_CB)
+    {
+        mActionInitiated_CB(CALIBRATE_ACTION);
+    }
+    (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
+    return Status::Success;
+}
+
+Protocols::InteractionModel::Status ClosureControlManager::HandleMotion(bool latchNeeded, bool NewTarget) 
+{
+    Action_t action = INVALID_ACTION;
+    //Target changes when target is in motion 
+    if (NewTarget)
+    {
+        (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
+        action = TARGET_CHANGE_ACTION;
+    } else {
+        if (latchNeeded) {
+            action = MOVE_AND_LATCH_ACTION;
+        } else {
+            action = MOVE_ACTION;
+        }
+    }
+    mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleMotionCountDown));
+    mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
+    (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
+    
+    if (mActionInitiated_CB)
+    {
+        mActionInitiated_CB(action);
+    }
     return Status::Success;
 }
 
@@ -217,12 +350,22 @@ void ClosureControlManager::ClosureControlAttributeChangeHandler(EndpointId endp
     }
 }
 
-bool ClosureControlManager::IsManualLatch(){
-    //TODO: Check the latch is manual or not on device
-    return false;
+bool ClosureControlManager::CheckErrorondevice()
+{
+    //TODO: derive error list for currenterrorlist
+    bool errorList = false;
+    if (errorList) {
+        chip::DeviceLayer::PlatformMgr().LockChipStack();
+        mpClosureControlInstance->SetMainState(MainStateEnum::kError);
+        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+        return false;
+    } 
+    
+    return true;
 }
 
-bool ClosureControlManager::IsDeviceReadytoMove(){
-    //TODO: Check if device is ready to move or should wait.
+bool ClosureControlManager::IsDeviceReadytoMove()
+{
+    // Check if device needs some action before movement.(manufacture specific)
     return true;
 }

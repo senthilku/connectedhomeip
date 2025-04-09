@@ -39,6 +39,12 @@ namespace ClosureControl {
 static std::unique_ptr<ClosureControlManager> gClosureCtrlDelegate;
 static std::unique_ptr<ClosureControlInstance> gClosureCtrlInstance;
 
+ClosureControlManager * GetClosureControlManager()
+{
+    VerifyOrDieWithMsg(gClosureCtrlDelegate.get() != nullptr, AppServer, "Dishwasher Manager is null");
+    return gClosureCtrlDelegate.get();
+}
+
 /*
  * @brief Creates a Delegate and Instance for Closure Control cluster
  *
