@@ -52,7 +52,6 @@ public:
 
     app::DataModel::Nullable<uint32_t> mCountDownTime;
 
-
     /**
      * @brief Set the callback for closure control action intiated and completed
      *

@@ -230,7 +230,7 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
 {
     bool motionNeeded = false;
     bool latchNeeded  = false;
-    CHIP_ERROR err = CHIP_NO_ERROR;
+    CHIP_ERROR err    = CHIP_NO_ERROR;
 
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     MainStateEnum state                = mpClosureControlInstance->GetMainState();
@@ -310,7 +310,6 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
             VerifyOrReturnValue(err == CHIP_NO_ERROR, Status::Failure);
 
             return HandleMotion(latchNeeded, false);
-
         }
     }
     else
@@ -375,7 +374,6 @@ Protocols::InteractionModel::Status ClosureControlManager::HandleMotion(bool lat
     mpClosureControlInstance->UpdateCountdownTimeFromDelegate();
     (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
 
-
     if (mActionInitiated_CB)
     {
         mActionInitiated_CB(action);
@@ -386,7 +384,7 @@ Protocols::InteractionModel::Status ClosureControlManager::HandleMotion(bool lat
 
 void ClosureControlManager::ClosureControlAttributeChangeHandler(EndpointId endpointId, AttributeId attributeId)
 {
-    //TODO: UI handling of attribute change
+    // TODO: UI handling of attribute change
     switch (attributeId)
     {
     case Attributes::CountdownTime::Id:
