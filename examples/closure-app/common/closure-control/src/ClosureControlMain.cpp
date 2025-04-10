@@ -41,7 +41,7 @@ static std::unique_ptr<ClosureControlInstance> gClosureCtrlInstance;
 
 ClosureControlManager * GetClosureControlManager()
 {
-    VerifyOrDieWithMsg(gClosureCtrlDelegate.get() != nullptr, AppServer, "Dishwasher Manager is null");
+    VerifyOrDieWithMsg(gClosureCtrlDelegate.get() != nullptr, AppServer, "Closure Control Manager is null");
     return gClosureCtrlDelegate.get();
 }
 
