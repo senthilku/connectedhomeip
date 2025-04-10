@@ -226,15 +226,15 @@ CHIP_ERROR Instance::PostMovementCompletedEvent()
 {
     Events::MovementCompleted::Type event{};
 
-    if (!HasFeature(Feature::kPositioning))
-    {
-        return CHIP_NO_ERROR;
-    }
-
     auto overallTarget = GetOverallTarget();
     GenericOverallState overallState;
     overallState = overallTarget;
     SetOverallState(overallState);
+    
+    if (!HasFeature(Feature::kPositioning))
+    {
+        return CHIP_NO_ERROR;
+    }
 
     EventNumber eventNumber;
     CHIP_ERROR err = LogEvent(event, mDelegate.GetEndpointId(), eventNumber);

@@ -52,11 +52,24 @@ public:
 
     app::DataModel::Nullable<uint32_t> mCountDownTime;
 
+    
+    /**
+     * @brief Set the callback for closure control action intiated and completed
+     *
+     * @param [in] aActionInitiated_CB action intitated callback
+     * @param [in] aActionCompleted_CB action completed callback
+     */
     typedef void (*Callback_fn_initiated)(Action_t action);
     typedef void (*Callback_fn_completed)(Action_t action);
     void SetCallbacks(Callback_fn_initiated aActionInitiated_CB, Callback_fn_completed aActionCompleted_CB);
 
     void SetClosureControlInstance(ClosureControl::Instance & instance);
+    
+    /**
+     * @brief Get the closure control instance
+     *
+     * @return closure control Instance
+     */
     Instance * GetClosureControlInstance();
 
     /*********************************************************************************
@@ -73,9 +86,6 @@ public:
     CHIP_ERROR GetCurrentErrorListAtIndex(size_t Index, ClosureErrorEnum & closureError) override;
     CHIP_ERROR EndCurrentErrorListRead() override;
 
-    // ------------------------------------------------------------------
-    // Get attribute methods
-
     DataModel::Nullable<uint32_t> GetCountdownTime() override;
 
     /***************************************************************************
@@ -85,7 +95,7 @@ public:
      ***************************************************************************/
 
     /**
-     * @brief Initializes the manager, fetch the featuremap
+     * @brief Init code to fetches the featuremap
      * @return return CHIP_NO_ERROR on success , CHIP_FAILURE on failure
      */
     CHIP_ERROR Init();
@@ -96,12 +106,14 @@ public:
      * @brief Handles the countdown timer expiration event
      */
     void HandleCountdownTimeExpired();
+    
     /**
      * @brief Checks if the device can move or need pre-motion stages to complete
      * @return true if device is ready to move
      *         false if device is not ready to move
      */
     bool IsDeviceReadytoMove();
+    
     /**
      * @brief Handles the motion request of Closure
      * @param [in] latchNeeded - true if latch is needed
@@ -109,6 +121,13 @@ public:
      * @return Protocols::InteractionModel::Status - success or failure
      */
     Protocols::InteractionModel::Status HandleMotion(bool latchNeeded, bool NewTarget);
+    
+    /**
+     * @brief Checks if device is error state or not and sets mainstate to error.
+     * @return true if device is error state
+     *         false if device is not in error state
+     */
+    bool CheckErrorondevice();
 
 private:
     /***************************************************************************
@@ -122,14 +141,6 @@ private:
     BitMask<Feature> features;
 
     bool isManualLatch = false;
-    /**
-     * @brief Checks if device is error state or not and sets mainstate to error.
-     * @return true if device is error state
-     *         false if device is not in error state
-     */
-    bool CheckErrorondevice();
-
-    static ClosureControlManager sClosureCtrlMgr;
 
     Callback_fn_initiated mActionInitiated_CB;
     Callback_fn_completed mActionCompleted_CB;

@@ -166,23 +166,26 @@ public:
 
     /**
      * @brief Post event when a reportable error condition is detected
-     * @param[in]
+     * @param [in] errorState current error list
      * @return CHIP_NO_ERROR if event posted succesfully
-     *                       return error recieved from LogEvent.
+     *         Return error recieved from LogEvent.
      */
     CHIP_ERROR PostOperationalErrorEvent(const DataModel::List<const ClosureErrorEnum> errorState);
 
     /**
      * @brief Post event, if supported, when the overall operation ends, either successfully or otherwise
-     * @return CHIP_NO_ERROR if event posted succesfully or positioning feature is not supported.
-     *                       return error recieved from LogEvent.
+     * @return CHIP_NO_ERROR if event posted succesfully  
+     *         CHIP_NO_ERROR if positioning feature is not supported.
+     *         Return error recieved from LogEvent.
      */
     CHIP_ERROR PostMovementCompletedEvent();
 
     /**
      * @brief Post event, if supported,when the MainStateEnum attribute changes state to and from disengaged
      * @param[in] EngageValue will indicate if the actuator is Engaged or Disengaged
-     * @return CHIP_NO_ERROR if event posted succesfully or ManuallyOperable feature is not supported.
+     * @return CHIP_NO_ERROR if event posted succesfully
+     *         CHIP_NO_ERROR if manuallyOperable feature is not supported.
+     *         Return error recieved from LogEvent.
      */
     CHIP_ERROR PostEngageStateChangedEvent(const bool engageValue);
 
@@ -190,6 +193,8 @@ public:
      * @brief Post event, if supported, when the SecureState field in the OverallState attribute changes.
      * @param[in] secureValue will indicate whether a closure is securing a space against possible unauthorized entry.
      * @return CHIP_NO_ERROR if event posted succesfully
+     *         CHIP_NO_ERROR if feature conformance is not supported
+     *         Return error recieved from LogEvent.
      */
     CHIP_ERROR PostSecureStateChangedEvent(const bool secureValue);
 
