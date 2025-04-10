@@ -70,7 +70,7 @@ public:
     CHIP_ERROR StartAppTask();
 
     /**
-     * @brief Callbacks for Action intiated and completed
+     * @brief Callbacks for Action initiated and completed
      *
      * @param btnAction action - type of closure action
      */
