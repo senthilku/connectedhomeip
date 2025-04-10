@@ -230,7 +230,7 @@ CHIP_ERROR Instance::PostMovementCompletedEvent()
     GenericOverallState overallState;
     overallState = overallTarget;
     SetOverallState(overallState);
-    
+
     if (!HasFeature(Feature::kPositioning))
     {
         return CHIP_NO_ERROR;

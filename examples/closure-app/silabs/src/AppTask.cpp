@@ -173,7 +173,7 @@ void AppTask::ActionInitiated(ClosureControl::ClosureControlManager::Action_t ac
     SILABS_LOG("==================================================");
     SILABS_LOG("ActionInitiated");
     SILABS_LOG("==================================================");
-    // TODO: Add Action specific LCD UI display implmentation 
+    // TODO: Add Action specific LCD UI display implmentation
     if (action == ClosureControlManager::MOVE_ACTION)
     {
         SILABS_LOG("Starting Motion");
@@ -202,7 +202,7 @@ void AppTask::ActionInitiated(ClosureControl::ClosureControlManager::Action_t ac
 
 void AppTask::ActionCompleted(ClosureControl::ClosureControlManager::Action_t action)
 {
-    // TODO: Add Action specific LCD UI display implmentation 
+    // TODO: Add Action specific LCD UI display implmentation
     if (action == ClosureControlManager::MOVE_ACTION)
     {
         SILABS_LOG("Motion Completed");

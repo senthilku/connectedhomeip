@@ -174,7 +174,7 @@ public:
 
     /**
      * @brief Post event, if supported, when the overall operation ends, either successfully or otherwise
-     * @return CHIP_NO_ERROR if event posted succesfully  
+     * @return CHIP_NO_ERROR if event posted succesfully
      *         CHIP_NO_ERROR if positioning feature is not supported.
      *         Return error recieved from LogEvent.
      */

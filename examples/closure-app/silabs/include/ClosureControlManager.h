@@ -52,7 +52,7 @@ public:
 
     app::DataModel::Nullable<uint32_t> mCountDownTime;
 
-    
+
     /**
      * @brief Set the callback for closure control action intiated and completed
      *
@@ -64,7 +64,7 @@ public:
     void SetCallbacks(Callback_fn_initiated aActionInitiated_CB, Callback_fn_completed aActionCompleted_CB);
 
     void SetClosureControlInstance(ClosureControl::Instance & instance);
-    
+
     /**
      * @brief Get the closure control instance
      *
@@ -106,14 +106,14 @@ public:
      * @brief Handles the countdown timer expiration event
      */
     void HandleCountdownTimeExpired();
-    
+
     /**
      * @brief Checks if the device can move or need pre-motion stages to complete
      * @return true if device is ready to move
      *         false if device is not ready to move
      */
     bool IsDeviceReadytoMove();
-    
+
     /**
      * @brief Handles the motion request of Closure
      * @param [in] latchNeeded - true if latch is needed
@@ -121,7 +121,7 @@ public:
      * @return Protocols::InteractionModel::Status - success or failure
      */
     Protocols::InteractionModel::Status HandleMotion(bool latchNeeded, bool NewTarget);
-    
+
     /**
      * @brief Checks if device is error state or not and sets mainstate to error.
      * @return true if device is error state
