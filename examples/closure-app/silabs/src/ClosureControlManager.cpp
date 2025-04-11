@@ -29,7 +29,10 @@ using Protocols::InteractionModel::Status;
 // Mock Error List generated for sample application usage.
 const ClosureErrorEnum kCurrentErrorList[] = {
     {
-        ClosureErrorEnum::kBlocked,
+        ClosureErrorEnum::kBlockedBySensor,
+    },
+    {
+        ClosureErrorEnum::kInternalInterference,
     },
     {
         ClosureErrorEnum::kInternalInterference,
@@ -113,7 +116,7 @@ Protocols::InteractionModel::Status ClosureControlManager::Stop()
 
 // Return default success, will add command handling in next phase
 Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional<TargetPositionEnum> & tag,
-                                                                  const Optional<TargetLatchEnum> & latch,
+                                                                  const Optional<bool> & latch,
                                                                   const Optional<Globals::ThreeLevelAutoEnum> & speed)
 {
     MainStateEnum state              = mpClosureControlInstance->GetMainState();
@@ -144,22 +147,13 @@ Protocols::InteractionModel::Status ClosureControlManager::MoveTo(const Optional
 
     if (latch.HasValue())
     {
-        VerifyOrReturnValue(Clusters::EnsureKnownEnumValue(latch.Value()) == TargetLatchEnum::kUnknownEnumValue,
-                            Status::ConstraintError);
+        VerifyOrReturnValue(latch.Value() == true || latch.Value() == false, Status::ConstraintError);
         VerifyOrReturnValue(mpClosureControlInstance->HasFeature(Feature::kMotionLatching), Status::Success);
         ChipLogDetail(DataManagement, "ClosureControlManager::latch");
         VerifyOrReturnValue(IsManualLatch(), Status::InvalidAction);
 
         // TODO: device to perform latch operation
-
-        if (latch.Value() == TargetLatchEnum::kLatch)
-        {
-            overallState.latching.SetValue(LatchingEnum::kLatchedAndSecured);
-        }
-        if (latch.Value() == TargetLatchEnum::kUnlatch)
-        {
-            overallState.latching.SetValue(LatchingEnum::kNotLatched);
-        }
+            overallState.latch.SetValue(latch.Value());
     }
 
     if (speed.HasValue())
