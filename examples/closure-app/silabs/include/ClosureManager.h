@@ -28,6 +28,8 @@
  {
  public:
  
+    static ClosureManager sClosureMgr;
+ 
     /**
     * @brief Initializes the ClosureManager.
     *

@@ -42,6 +42,7 @@ namespace {
     
 } // namespace
 
+ClosureManager ClosureManager::sClosureMgr;
 
 void ClosureManager::Init()
 {

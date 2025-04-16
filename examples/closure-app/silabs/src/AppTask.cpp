@@ -84,7 +84,8 @@ CHIP_ERROR AppTask::AppInit()
     GetLCD().Init((uint8_t *) "Closure-App");
 #endif
 
-    //ClosureManager.Init();
+// Initialization of Closure Manager and endpoints of closure and closurepanel.
+    ClosureManager::sClosureMgr.Init();
 
 // Update the LCD with the Stored value. Show QR Code if not provisioned
 #ifdef DISPLAY_ENABLED
