@@ -59,7 +59,7 @@ CHIP_ERROR ClusterLogic::Init(const ClusterConformance & conformance, const Clus
     return CHIP_NO_ERROR;
 }
 
-
+// TODO: Handle Impact of the MoveTo command in Closure Control Cluster on main-endpoint
 CHIP_ERROR ClusterLogic::SetCurrentState(const DataModel::Nullable<GenericCurrentStateStruct> & incomingCurrentState)
 {
     assertChipStackLockedByCurrentThread();
@@ -208,6 +208,7 @@ CHIP_ERROR ClusterLogic::SetCurrentState(const DataModel::Nullable<GenericCurren
     return CHIP_NO_ERROR;
 }
 
+// TODO: Handle Impact of the MoveTo command in Closure Control Cluster on main-endpoint
 CHIP_ERROR ClusterLogic::SetTarget(const DataModel::Nullable<GenericTargetStruct> & target)
 {
     VerifyOrReturnError(mInitialized, CHIP_ERROR_INCORRECT_STATE);
@@ -258,6 +259,8 @@ CHIP_ERROR ClusterLogic::SetTarget(const DataModel::Nullable<GenericTargetStruct
     return CHIP_NO_ERROR;
 }
 
+// TODO: Should we check other attributes which are multiples of resolution while setting resolution?
+// TODO: Fallback value should be 1 or what should we do if resolution is not there for attributes which are multiples of resolution?
 CHIP_ERROR ClusterLogic::SetResolution(const Percent100ths resolution)
 {
     VerifyOrReturnError(mInitialized, CHIP_ERROR_INCORRECT_STATE);
@@ -619,6 +622,7 @@ Status ClusterLogic::HandleSetTargetCommand(Optional<Percent100ths> position, Op
     DataModel::Nullable<GenericTargetStruct> target;
     VerifyOrReturnError(GetTarget(target) == CHIP_NO_ERROR, Status::Failure);
 
+    // TODO:  5.5.7.1.4.1.Specific case of Degrees
     if (position.HasValue())
     {
         VerifyOrReturnError((position.Value() <= PERCENT100THS_MAX_VALUE), Status::ConstraintError);
@@ -641,6 +645,9 @@ Status ClusterLogic::HandleSetTargetCommand(Optional<Percent100ths> position, Op
     {
         // If MotionLatching (LT) feature is not supported, the server SHALL return a status code SUCCESS,
         VerifyOrReturnError(mConformance.HasFeature(Feature::kMotionLatching), Status::Success);
+
+        // TODO Spec Issue: If the value is not of type bool and does not follow the constraint then a status code of
+        // CONSTRAINT_ERROR SHALL be returned
 
         // If manual intervention is required to latch, respond with INVALID_ACTION
         if (mDelegate.IsManualLatchingNeeded())
