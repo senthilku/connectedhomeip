@@ -152,6 +152,7 @@ bool ClusterLogic::IsSupportedOverallTargetPositioning(TargetPositionEnum positi
     return isSupported;
 }
 
+// TODO: Change should be reported - When it changes at a rate equal or lower than one unit per second - Where is this checked?
 CHIP_ERROR ClusterLogic::SetCountdownTime(const DataModel::Nullable<ElapsedS> & countdownTime, bool fromDelegate)
 {
     assertChipStackLockedByCurrentThread();
@@ -282,6 +283,7 @@ CHIP_ERROR ClusterLogic::SetMainState(MainStateEnum mainState)
     return CHIP_NO_ERROR;
 }
 
+// TODO: Question - If latch is enabled, position should not be moved as per spec?
 CHIP_ERROR ClusterLogic::SetOverallState(const DataModel::Nullable<GenericOverallState> & overallState)
 {
     assertChipStackLockedByCurrentThread();
@@ -416,6 +418,9 @@ CHIP_ERROR ClusterLogic::SetOverallState(const DataModel::Nullable<GenericOveral
         // - cluster does not have value; the value will necessarily be updated
         // - cluster and incoming values are different
         requireLatchUpdate = !validateClusterOverallStateLatch || currentOverallState.Value().latch.Value() != latch;
+
+        // If latch is true, DO NOT move the position, return at this point
+        VerifyOrReturnError(!requireLatchUpdate, Status::Failure);
     }
 
     // Validate the incomging Speed value - We don't need to check feature since the check was done above.
@@ -634,7 +639,6 @@ CHIP_ERROR ClusterLogic::SetCurrentErrorList(const ClosureErrorEnum error)
     ReturnErrorOnFailure(mDelegate.SetCurrentErrorInList(error));
     ReportCurrentErrorListChange();
     
-    //TODO: GetErrorList and PostErrorEvent
     
     ReturnErrorOnFailure(SetMainState(MainStateEnum::kError));
     
@@ -795,6 +799,8 @@ chip::Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<Ta
         target.Value().latch = latch;
     }
 
+
+
     if (speed.HasValue())
     {
         VerifyOrReturnError(speed.Value() != Globals::ThreeLevelAutoEnum::kUnknownEnumValue, Status::ConstraintError);
@@ -862,7 +868,7 @@ chip::Protocols::InteractionModel::Status ClusterLogic::HandleCalibrate()
     
     // If Calibrate command is invoked in any state other than Stopped, the server SHALL respond with INVALID_IN_STATE.
     // this check excludes Claibrating Mainstate as its already validated above.
-    VerifyOrReturnValue(state != MainStateEnum::kStopped,Status::InvalidInState);
+    VerifyOrReturnValue(state == MainStateEnum::kStopped,Status::InvalidInState);
     
     status = mDelegate.HandleCalibrateCommand();
     

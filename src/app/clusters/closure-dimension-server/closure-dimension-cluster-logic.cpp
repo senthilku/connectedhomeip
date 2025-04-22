@@ -622,7 +622,32 @@ Status ClusterLogic::HandleSetTargetCommand(Optional<Percent100ths> position, Op
     DataModel::Nullable<GenericTargetStruct> target;
     VerifyOrReturnError(GetTarget(target) == CHIP_NO_ERROR, Status::Failure);
 
+    DataModel::Nullable<GenericCurrentStateStruct> currentState;
+    VerifyOrReturnError(GetCurrentState(currentState) == CHIP_NO_ERROR, Status::Failure);
+
     // TODO:  5.5.7.1.4.1.Specific case of Degrees
+    if (latch.HasValue())
+    {
+        // If MotionLatching (LT) feature is not supported, the server SHALL return a status code SUCCESS,
+        VerifyOrReturnError(mConformance.HasFeature(Feature::kMotionLatching), Status::Success);
+
+        // TODO Spec Issue: If the value is not of type bool and does not follow the constraint then a status code of
+        // CONSTRAINT_ERROR SHALL be returned
+
+        // If manual intervention is required to latch, respond with INVALID_ACTION
+        if (mDelegate.IsManualLatchingNeeded())
+        {
+            return Status::InvalidAction;
+        }
+        
+        target.Value().latch = latch;
+    }
+
+    // If latching is enabled, DO NOT proceed further to move the position.
+    // TODO: Check what status should be returned in this case, currently returning Failure. 
+    VerifyOrReturnError(!(currentState.Value().latch.HasValue() && currentState.Value().latch.Value() && ((latch.HasValue()
+                         && latch.Value()) || !latch.HasValue())), Status::Failure);
+
     if (position.HasValue())
     {
         VerifyOrReturnError((position.Value() <= PERCENT100THS_MAX_VALUE), Status::ConstraintError);
