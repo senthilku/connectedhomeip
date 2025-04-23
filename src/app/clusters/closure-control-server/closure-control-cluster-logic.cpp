@@ -418,10 +418,9 @@ CHIP_ERROR ClusterLogic::SetOverallState(const DataModel::Nullable<GenericOveral
         // - cluster does not have value; the value will necessarily be updated
         // - cluster and incoming values are different
         requireLatchUpdate = !validateClusterOverallStateLatch || currentOverallState.Value().latch.Value() != latch;
-
-        // If latch is true, DO NOT move the position, return at this point
-        VerifyOrReturnError(!requireLatchUpdate, Status::Failure);
     }
+
+    // TODO: If latched, position should not be moved.
 
     // Validate the incomging Speed value - We don't need to check feature since the check was done above.
     if (validateIncomingOverallStateSpeed)

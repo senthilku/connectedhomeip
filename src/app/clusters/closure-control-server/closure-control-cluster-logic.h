@@ -152,6 +152,7 @@ public:
 
     const ClusterConformance & GetConformance() const { return mConformance; }
     const ClusterState & GetState() const { return mState; }
+    const DelegateBase & GetDelegate() const { return mDelegate; }
 
     /**
      * @brief Initializes the cluster logic
