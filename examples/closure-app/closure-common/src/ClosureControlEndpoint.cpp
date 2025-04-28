@@ -27,29 +27,64 @@
 #include <app/clusters/closure-control-server/closure-control-server.h>
 #include <platform/CHIPDeviceLayer.h>
 
+namespace {
+    constexpr uint32_t kExampleCalibrateCountDown     = 10;
+    constexpr uint32_t kExampleMotionCountDown        = 15;
+    constexpr uint32_t kExampleWaitforMotionCountDown = 15;
+} // namespace
+
 using namespace chip;
+using namespace chip::app;
 using namespace chip::app::Clusters::ClosureControl;
 
 using Protocols::InteractionModel::Status;
 
-void PrintOnlyDelegate::SetCallbacks(Callback_fn_initiated aActionInitiated_CB, Callback_fn_completed aActionCompleted_CB)
+PositioningEnum ClosureControlDelegate::GetStatePositionFromTarget(TargetPositionEnum targetPosition)
 {
-    mActionInitiated_CB = aActionInitiated_CB;
-    mActionCompleted_CB = aActionCompleted_CB;
+    switch (targetPosition)
+    {
+        case TargetPositionEnum::kCloseInFull:
+            return PositioningEnum::kFullyClosed;
+
+        case TargetPositionEnum::kOpenInFull:
+            return PositioningEnum::kFullyOpened;
+
+        case TargetPositionEnum::kPedestrian:
+            return PositioningEnum::kOpenedForPedestrian;
+
+        case TargetPositionEnum::kVentilation:
+            return PositioningEnum::kOpenedForVentilation;
+
+        case TargetPositionEnum::kSignature:
+            return PositioningEnum::kOpenedAtSignature;
+
+        default:
+            return PositioningEnum::kUnknownEnumValue;
+    }
+}
+
+DataModel::Nullable<ElapsedS> ClosureControlDelegate::GetRemainingTime()
+{
+    
+    if (mCountDownTime.IsNull())
+        return DataModel::NullNullable;
+
+    return DataModel::MakeNullable((mCountDownTime.Value() - static_cast<ElapsedS>(mMovingTime + mWaitingTime + mCalibratingTime)));
 }
 
 static void onOperationalStateTimerTick(System::Layer * systemLayer, void * data)
 {
-    PrintOnlyDelegate * delegate = reinterpret_cast<PrintOnlyDelegate *>(data);
+    ClosureControlDelegate * delegate = reinterpret_cast<ClosureControlDelegate *>(data);
 
     MainStateEnum state;
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     delegate->GetLogic()->GetMainState(state);
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 
-    auto countdown_time = delegate->GetRemainingTime();
+    DataModel::Nullable<ElapsedS> countdown_time = delegate->GetRemainingTime();
 
-    if (countdown_time.IsNull() || (!countdown_time.IsNull() && countdown_time.Value() > 0))
+    // if (countdown_time.IsNull() || (!countdown_time.IsNull() && countdown_time.Value() > 0))
+    if (countdown_time.IsNull() || countdown_time.Value() > 0)
     {
         if (state == MainStateEnum::kMoving)
         {
@@ -87,62 +122,79 @@ static void onOperationalStateTimerTick(System::Layer * systemLayer, void * data
     }
 }
 
-Status PrintOnlyDelegate::HandleCalibrateCommand()
+void ClosureControlDelegate::HandleCountdownTimeExpired()
 {
-    ChipLogProgress(AppServer, "HandleCalibrateCommand");
-    mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleCalibrateCountDown));
+    ClusterLogic * logic = GetLogic();
+    MainStateEnum state;
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    
+    mCountDownTime.SetNonNull(0);
+    mCalibratingTime = 0;
+    mWaitingTime = 0;
+    mMovingTime = 0;
+    
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    logic->SetCountdownTimeFromDelegate(mCountDownTime);
+    logic->GetMainState(state);
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 
-    if (mActionInitiated_CB)
+    if (state == MainStateEnum::kWaitingForMotion &&  ClosureControlDelegate::IsPreStageComplete())
     {
-        mActionInitiated_CB(CALIBRATE_ACTION);
+            logic->SetMainState(MainStateEnum::kMoving);
+            HandleMotion();
+    }
+
+    if (state == MainStateEnum::kMoving)
+    {
+        chip::DeviceLayer::PlatformMgr().LockChipStack();
+        // Update OverallState object
+        DataModel::Nullable<GenericOverallTarget> target;
+        GetLogic()->GetOverallTarget(target);
+        GenericOverallState current {};
+        // Copy position if present
+        if (target.Value().position.HasValue())
+        {
+            current.positioning.SetValue(DataModel::MakeNullable(GetStatePositionFromTarget(target.Value().position.Value())));
+        }
+        // Copy latch if present
+        if (target.Value().latch.HasValue())
+        {
+            current.latch.SetValue(DataModel::MakeNullable(target.Value().latch.Value()));
+        }
+        // Copy speed if present
+        if (target.Value().speed.HasValue())
+        {
+            current.speed.SetValue(DataModel::MakeNullable(target.Value().speed.Value()));
+        }
+        GetLogic()->SetOverallState(DataModel::MakeNullable(current));
+        logic->PostMovementCompletedEvent();
+        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
     }
     
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    logic->SetMainState(MainStateEnum::kStopped);
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+}
+
+Status ClosureControlDelegate::HandleCalibrateCommand()
+{
+    mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleCalibrateCountDown));
+    
     (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
+    
+    //Trigger Calibrate Action.
+    
     return Status::Success;
 }
 
-PositioningEnum PrintOnlyDelegate::GetStatePositionFromTarget(TargetPositionEnum targetPosition)
-{
-    switch (targetPosition)
-    {
-        case TargetPositionEnum::kCloseInFull:
-            return PositioningEnum::kFullyClosed;
-
-        case TargetPositionEnum::kOpenInFull:
-            return PositioningEnum::kFullyOpened;
-
-        case TargetPositionEnum::kPedestrian:
-            return PositioningEnum::kOpenedForPedestrian;
-
-        case TargetPositionEnum::kVentilation:
-            return PositioningEnum::kOpenedForVentilation;
-
-        case TargetPositionEnum::kSignature:
-            return PositioningEnum::kOpenedAtSignature;
-
-        default:
-            return PositioningEnum::kUnknownEnumValue;
-    }
-}
-
-Status PrintOnlyDelegate::HandleMoveToCommand(const Optional<TargetPositionEnum> & tag, const Optional<bool> & latch,
+Status ClosureControlDelegate::HandleMoveToCommand(const Optional<TargetPositionEnum> & tag, const Optional<bool> & latch,
                                               const Optional<Globals::ThreeLevelAutoEnum> & speed)
 {
-    ChipLogProgress(AppServer, "HandleMoveToCommand");
-    VerifyOrReturnValue(tag.HasValue() || latch.HasValue() || speed.HasValue(), Status::InvalidCommand);
-
-    bool motionNeeded = false;
-    bool latchNeeded  = false;
-
-    ClusterLogic * logic = GetLogic();
-
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
     MainStateEnum state;
-    chip::app::DataModel::Nullable<GenericOverallTarget> overallTarget;
-    chip::app::DataModel::Nullable<GenericOverallState> overallState;
-    logic->GetMainState(state);
-    logic->GetOverallTarget(overallTarget);
-    logic->GetOverallState(overallState);
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    GetLogic()->GetMainState(state);
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
 
     VerifyOrReturnError(state == MainStateEnum::kMoving || state == MainStateEnum::kWaitingForMotion, Status::Failure);
@@ -158,228 +210,96 @@ Status PrintOnlyDelegate::HandleMoveToCommand(const Optional<TargetPositionEnum>
         (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
         return Status::Success;
     }
-
-    // // If device is already at TargetState ,no Action is required will give Status::Success
-    // VerifyOrReturnValue(motionNeeded || latchNeeded, Status::Success);
-
-    // chip::DeviceLayer::PlatformMgr().LockChipStack();
-    // logic->SetOverallTarget(overallTarget);
-    // chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
-    // if (IsDeviceReadytoMove())
-    // {
-    //     if (state == MainStateEnum::kMoving || state == MainStateEnum::kWaitingForMotion)
-    //     {
-    //         return HandleMotion();
-    //     }
-    //     else
-    //     {
-    //         chip::DeviceLayer::PlatformMgr().LockChipStack();
-    //         err = logic->SetMainState(MainStateEnum::kMoving);
-    //         chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-    //         VerifyOrReturnValue(err == CHIP_NO_ERROR, Status::Failure);
-
-    //         return HandleMotion();
-    //     }
-    // }
-    // else
-    // {
-    //     chip::DeviceLayer::PlatformMgr().LockChipStack();
-    //     err = logic->SetMainState(MainStateEnum::kWaitingForMotion);
-    //     mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleWaitforMotionCountDown));
-    //     err = logic->SetCountdownTimeFromDelegate();
-    //     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-    //     VerifyOrReturnValue(err == CHIP_NO_ERROR, Status::Failure);
-
-    //     (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
-    // }
     
     return Status::Success;
 }
 
-bool PrintOnlyDelegate::IsDeviceReadytoMove()
+Status ClosureControlDelegate::HandleStopCommand()
 {
-    // Check if device needs some action before movement.(manufacture specific)
-    return true;
-}
-
-bool PrintOnlyDelegate::IsPreStageComplete()
-{
-    return true;
-}
-
-chip::app::DataModel::Nullable<ElapsedS> PrintOnlyDelegate::GetRemainingTime()
-{
-    
-    if (mCountDownTime.IsNull())
-        return chip::app::DataModel::NullNullable;
-
-    return chip::app::DataModel::MakeNullable((mCountDownTime.Value() - static_cast<ElapsedS>(mMovingTime + mWaitingTime + mCalibratingTime)));
-}
-
-void PrintOnlyDelegate::HandleCountdownTimeExpired()
-{
-    ClusterLogic * logic = GetLogic();
-    MainStateEnum state;
     chip::DeviceLayer::PlatformMgr().LockChipStack();
     (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
-    logic->GetMainState(state);
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
-    if (state == MainStateEnum::kCalibrating)
-    {
-        mCalibratingTime = 0;
-    }
-
-    if (state == MainStateEnum::kWaitingForMotion)
-    {
-        mWaitingTime = 0;
-        
-        if (PrintOnlyDelegate::IsPreStageComplete())
-        {
-            logic->SetMainState(MainStateEnum::kMoving);
-            mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleMotionCountDown));
-            HandleMotion();
-        }
-    }
-
-    if (state == MainStateEnum::kMoving)
-    {
-        mMovingTime = 0;
-        chip::DeviceLayer::PlatformMgr().LockChipStack();
-        logic->PostMovementCompletedEvent();
-        chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
-        if (mActionCompleted_CB)
-        {
-            mActionCompleted_CB(MOVE_ACTION);
-        }
-    }
-
+    
+    mCalibratingTime = 0;
+    mMovingTime = 0;
+    mWaitingTime = 0;
+    
     mCountDownTime.SetNonNull(0);
+    chip::DeviceLayer::PlatformMgr().LockChipStack();
+    GetLogic()->SetCountdownTimeFromDelegate(mCountDownTime);
+    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+    
+    //Trigger Stop Action.
 
     chip::DeviceLayer::PlatformMgr().LockChipStack();
-    logic->SetMainState(MainStateEnum::kStopped);
-    logic->SetCountdownTimeFromDelegate(mCountDownTime);
+    VerifyOrReturnError(GetLogic()->PostMovementCompletedEvent() == CHIP_NO_ERROR, Status::Failure);
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
+
+    return Status::Success;
 }
 
-Protocols::InteractionModel::Status PrintOnlyDelegate::HandleMotion()
+Protocols::InteractionModel::Status ClosureControlDelegate::HandleMotion()
 {
-    Action_t action = INVALID_ACTION;
-    chip::app::DataModel::Nullable<GenericOverallTarget> target;
-    GetLogic()->GetOverallTarget(target);
     // Cancel timer if any motion is in progress
     (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
-
-    if (target.Value().latch.HasValue() && target.Value().latch.Value())
-    {
-        action = MOVE_AND_LATCH_ACTION;
-    }
-    else
-    {
-        action = MOVE_ACTION;
-    }
-
+    
+    mWaitingTime = 0;
+    mMovingTime = 0;
+    
     mCountDownTime.SetNonNull(static_cast<uint32_t>(kExampleMotionCountDown));
 
     chip::DeviceLayer::PlatformMgr().LockChipStack();
-    GetLogic()->SetCountdownTimeFromDelegate(GetRemainingTime());
     (void) DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds16(1), onOperationalStateTimerTick, this);
     chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
-    if (mActionInitiated_CB)
-    {
-        mActionInitiated_CB(action);
-    }
-
+    
+    //Trigger Motion Action
     return Status::Success;
 }
 
-Status PrintOnlyDelegate::HandleStopCommand()
+CHIP_ERROR ClosureControlDelegate::GetCurrentErrorAtIndex(size_t index, ClosureErrorEnum & closureError)
 {
-    ChipLogProgress(AppServer, "HandleStopCommand");
-    MainStateEnum state;
-    ClusterLogic * logic = GetLogic();
-
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    (void) DeviceLayer::SystemLayer().CancelTimer(onOperationalStateTimerTick, this);
-    logic->GetMainState(state);
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
-    CHIP_ERROR err = CHIP_NO_ERROR;
-
-    switch (state)
-    {
-        case MainStateEnum::kCalibrating:
-            mCalibratingTime = 0;
-            break;
-        case MainStateEnum::kMoving:
-            mMovingTime = 0;
-            break;
-        case MainStateEnum::kWaitingForMotion:
-            mWaitingTime = 0;
-            break;
-        default:
-            // No action needed for other states
-            break;
-    }
-
-    if (mActionCompleted_CB)
-    {
-        mActionCompleted_CB(STOP_ACTION);
-    }
-
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    err = logic->PostMovementCompletedEvent();
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-    VerifyOrReturnValue(err == CHIP_NO_ERROR, Status::Failure);
-
-    mCountDownTime.SetNull();
-    chip::DeviceLayer::PlatformMgr().LockChipStack();
-    logic->SetCountdownTimeFromDelegate(mCountDownTime);
-    chip::DeviceLayer::PlatformMgr().UnlockChipStack();
-
-    return Status::Success;
+    // TODO: Add  error list handling
+    return CHIP_ERROR_PROVIDER_LIST_EXHAUSTED;
 }
 
-bool PrintOnlyDelegate::IsManualLatchingNeeded()
+bool ClosureControlDelegate::IsManualLatchingNeeded()
 {
-    ChipLogProgress(AppServer, "IsManualLatchingNeeded");
-    // Add the IsManualLatchingNeeded  logic here
+     // Check if closure needs manual latching.(manufacture specific)
     return false;
 }
 
-bool PrintOnlyDelegate::IsReadyToMove()
+bool ClosureControlDelegate::IsReadyToMove()
 {
-    ChipLogProgress(AppServer, "IsReadyToMove");
-    // Add the IsReadyToMove logic here
-    return false;
+    // Check if closure needs some action before movement.(manufacture specific)
+    return true;
 }
 
-ElapsedS PrintOnlyDelegate::GetMovingCountdownTime()
+bool ClosureControlDelegate::IsPreStageComplete()
 {
-    ChipLogProgress(AppServer, "GetMovingCountdownTime");
-    // Add the GetMovingCountdownTime logic here
+    // Check if closure has completed the PreStage required before the motion
+    return true;
+}
+
+ElapsedS ClosureControlDelegate::GetCalibrationCountdownTime()
+{
+    // Return the CountdownTime needed for closure calibration
+    return static_cast<ElapsedS>(kExampleCalibrateCountDown);
+}
+
+ElapsedS ClosureControlDelegate::GetMovingCountdownTime()
+{
+    // Return the CountdownTime needed for closure motion
     return static_cast<ElapsedS>(kExampleMotionCountDown);
 }
 
-ElapsedS PrintOnlyDelegate::GetWaitingForMotionCountdownTime()
+ElapsedS ClosureControlDelegate::GetWaitingForMotionCountdownTime()
 {
-    ChipLogProgress(AppServer, "GetWaitingForMotionCountdownTime");
-    // Add the GetWaitingForMotionCountdownTime logic here
+    // Return the CountdownTime needed for closure to complete prestages before motion.
     return static_cast<ElapsedS>(kExampleWaitforMotionCountDown);
-}
-
-CHIP_ERROR PrintOnlyDelegate::GetCurrentErrorAtIndex(size_t index, ClosureErrorEnum & closureError)
-{
-    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ClosureControlEndpoint::Init()
 {
-    ChipLogProgress(AppServer, "ClosureControlEndpoint::Init start");
-    
     ClusterConformance conformance;
     conformance.FeatureMap().Set(Feature::kPositioning).Set(Feature::kMotionLatching).Set(Feature::kSpeed).Set(Feature::kVentilation)
                             .Set(Feature::kPedestrian).Set(Feature::kCalibration).Set(Feature::kProtection).Set(Feature::kManuallyOperable);
@@ -389,8 +309,6 @@ CHIP_ERROR ClosureControlEndpoint::Init()
     clusterInitParameters.mMainState = MainStateEnum::kStopped;
     ReturnErrorOnFailure(mLogic.Init(conformance, clusterInitParameters));
     ReturnErrorOnFailure(mInterface.Init());
-    
-    ChipLogProgress(AppServer, "ClosureControlEndpoint::Init end");
      
     return CHIP_NO_ERROR;
  }
