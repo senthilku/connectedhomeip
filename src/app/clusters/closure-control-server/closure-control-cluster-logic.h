@@ -109,7 +109,6 @@ struct ClusterState
         // - When it changes from 0 to any other value and vice versa
         // - When it increases
         // - When it changes from null to any other value and vice versa (default support)
-        // - Otherwise strategies manages within the set function
         mCountdownTime.policy()
             .Set(QuieterReportingPolicyEnum::kMarkDirtyOnIncrement)
             .Set(QuieterReportingPolicyEnum::kMarkDirtyOnChangeToFromZero);
@@ -172,6 +171,7 @@ public:
     CHIP_ERROR GetMainState(MainStateEnum & mainState);
     CHIP_ERROR GetOverallState(DataModel::Nullable<GenericOverallState> & overallState);
     CHIP_ERROR GetOverallTarget(DataModel::Nullable<GenericOverallTarget> & overallTarget);
+    // The delegate is expected to return CHIP_ERROR_PROVIDER_LIST_EXHAUSTED to indicate end of list
     CHIP_ERROR GetCurrentErrorList(const AttributeValueEncoder::ListEncodeHelper & aEncoder);
 
     /**
@@ -187,17 +187,28 @@ public:
     CHIP_ERROR SetOverallState(const DataModel::Nullable<GenericOverallState> & overallState);
 
     /**
-     * @brief Function to change the MainState.
+     * @brief Sets the main state of the cluster.
+     *        This method also generates the EngageStateChanged event based on MainState transition.
+     *        This method also updates the CountdownTime attribute based on MainState
      *
-     *        See SetCountdownTime function comment below
+     * @param[in] mainState - The new main state to be set.
+     *
+     * @return CHIP_NO_ERROR if the main state is set successfully.
+     *         CHIP_ERROR_INCORRECT_STATE if the cluster has not been initialized.
+     *         CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE if new MainState is not supported.
+     *         CHIP_ERROR_INCORRECT_STATE if the transition to new MainState is not supported.
+     *         CHIP_ERROR_INVALID_ARGUMENT if argument are not valid
      */
     CHIP_ERROR SetMainState(MainStateEnum mainState);
 
     /**
-     * @brief Public API to trigger countdown time update from the delegate (application layer).
-     *        Function calls the SetCountdownTime function with the fromDelegate parameter set to true.
+     * @brief Triggers an update to report a new countdown time from application.
+     *        This method should be called whenever the application needs to update the countdown time.
      *
-     *        See SetCountdownTime function comment below
+     * @param[in] countdownTime - Updated countdown time to be reported.
+     *
+     * @return CHIP_NO_ERROR if the countdown time is set successfully.
+     *         Returns an appropriate error code if the countdown time update fails
      */
     inline CHIP_ERROR SetCountdownTimeFromDelegate(const DataModel::Nullable<ElapsedS> & countdownTime)
     {
@@ -212,7 +223,7 @@ public:
      *          UnsupportedCommand if Instantaneous feature is supported.
      *          Success on succesful handling or Error Otherwise
      */
-    chip::Protocols::InteractionModel::Status HandleStop();
+    Protocols::InteractionModel::Status HandleStop();
 
     /**
      *  @brief Calls delegate HandleMoveToCommand function after validating the parameters and conformance.
@@ -226,8 +237,8 @@ public:
      *          InvalidInState if the MoveTo command not supported from present Mainstate.
      *          Success on succesful handling.
      */
-    chip::Protocols::InteractionModel::Status HandleMoveTo(Optional<TargetPositionEnum> position, Optional<bool> latch,
-                                                           Optional<Globals::ThreeLevelAutoEnum> speed);
+    Protocols::InteractionModel::Status HandleMoveTo(Optional<TargetPositionEnum> position, Optional<bool> latch,
+                                                     Optional<Globals::ThreeLevelAutoEnum> speed);
 
     /**
      *  @brief Calls delegate HandleCalibrateCommand function after validating the parameters and conformance.
@@ -237,51 +248,62 @@ public:
      *          InvalidInState if the Calibrate command not supported from present Mainstate.
      *          Success on succesful handling.
      */
-    chip::Protocols::InteractionModel::Status HandleCalibrate();
+    Protocols::InteractionModel::Status HandleCalibrate();
 
     /**
-     * @brief Post event when a reportable error condition is detected
+     * @brief Generates OperationalError event.
+     *        This method should be called whenever when a reportable error condition is detected
      *
      * @param [in] errorState current error list
      *
-     * @return CHIP_NO_ERROR if event posted succesfully
-     *         Return error recieved from LogEvent.
+     * @return CHIP_NO_ERROR if the event is generated successfully
+     *         Returns an appropriate error code if event generation fails
      */
-    CHIP_ERROR PostOperationalErrorEvent(const DataModel::List<const ClosureErrorEnum> & errorState);
+    CHIP_ERROR GenerateOperationalErrorEvent(const DataModel::List<const ClosureErrorEnum> & errorState);
 
     /**
-     * @brief Post event, if supported, when the overall operation ends, either successfully or otherwise
+     * @brief Generates MovementCompleted event.
+     *        This method should be called whenever when the overall operation ends either successfully or otherwise.
      *
-     * @return CHIP_NO_ERROR if event posted succesfully
-     *         CHIP_NO_ERROR if positioning feature is not supported.
-     *         Return error recieved from LogEvent.
+     * @return CHIP_NO_ERROR if the event is generated successfull
+     *         CHIP_NO_ERROR if the Positioning feature is not supported.
+     *         Returns an appropriate error code if event generation fails
      */
-    CHIP_ERROR PostMovementCompletedEvent();
+    CHIP_ERROR GenerateMovementCompletedEvent();
 
     /**
-     * @brief Post event, if supported,when the MainStateEnum attribute changes state to and from disengaged
+     * @brief Generates EngageStateChanged event.
+     *        This method should be called whenever when the MainStateEnum attribute changes state to and from disengaged
      *
      * @param[in] EngageValue will indicate if the actuator is Engaged or Disengaged
      *
-     * @return CHIP_NO_ERROR if event posted succesfully
-     *         CHIP_NO_ERROR if manuallyOperable feature is not supported.
-     *         Return error recieved from LogEvent.
+     * @return CHIP_NO_ERROR if the event is generated successfull
+     *         CHIP_NO_ERROR if hte ManuallyOperable feature is not supported.
+     *         Returns an appropriate error code if event generation fails
      */
-    CHIP_ERROR PostEngageStateChangedEvent(const bool engageValue);
+    CHIP_ERROR GenerateEngageStateChangedEvent(const bool engageValue);
 
     /**
-     * @brief Post event, if supported, when the SecureState field in the OverallState attribute changes.
+     * @brief Generates EngageStateChanged event.
+     *        This method should be called whenever when the SecureState field in the OverallState attribute changes.
      *
      * @param[in] secureValue will indicate whether a closure is securing a space against possible unauthorized entry.
-     * @return CHIP_NO_ERROR if event posted succesfully
-     *         CHIP_NO_ERROR if feature conformance is not supported
-     *         Return error recieved from LogEvent.
+     *
+     * @return CHIP_NO_ERROR if the event is generated successfull
+     *         CHIP_NO_ERROR if the feature conformance is not supported
+     *         Returns an appropriate error code if event generation fails.
      */
-    CHIP_ERROR PostSecureStateChangedEvent(const bool secureValue);
+    CHIP_ERROR GenerateSecureStateChangedEvent(const bool secureValue);
 
 private:
+    bool mIsInitialized = false;
+    DelegateBase & mDelegate;
+    ClusterConformance mConformance;
+    ClusterState mState;
+    MatterContext & mMatterContext;
+
     /**
-     * @brief Function validates if the requested mainState is supported by the device.
+     * @brief Function validates if the requested mainState is supported by the closure.
      *        Function validates agaisnt the FeatureMap conformance to validate support.
      *
      *        - Stopped, Moving, WaitingForMotion, Error and SetupRequired always return true since they are mandatory.
@@ -295,7 +317,7 @@ private:
      * @return true, if the requested MainState is supported
      *         false, otherwise
      */
-    bool IsSupportedMainState(MainStateEnum mainState);
+    bool IsSupportedMainState(MainStateEnum mainState) const;
 
     /**
      * @brief Function validates if the requested mainState is a valid transition from the current state.
@@ -306,10 +328,10 @@ private:
      * @return true, transition from current to requested is valid
      *         false, otherwise
      */
-    bool IsValidMainStateTransition(MainStateEnum mainState);
+    bool IsValidMainStateTransition(MainStateEnum mainState) const;
 
     /**
-     * @brief Function validates if the requested overallState positioning is supported by the device.
+     * @brief Function validates if the requested overallState positioning is supported by the closure.
      *        Function validates against the FeatureMap conformance to validate support.
      *
      *        - FullyClosed, FullyOpened, PartiallyOpened and OpenedAtSignature always return true since they are mandatory.
@@ -321,10 +343,10 @@ private:
      * @return true if the requested Positioning is supported
      *        false, otherwise
      */
-    bool IsSupportedOverallStatePositioning(PositioningEnum positioning);
+    bool IsSupportedOverallStatePositioning(PositioningEnum positioning) const;
 
     /**
-     * @brief Function validates if the requested OverallTarget positioning is supported by the device.
+     * @brief Function validates if the requested OverallTarget positioning is supported by the closure.
      *        Function validates agaisnt the FeatureMap conformance to validate support.
      *
      *        - CloseInFull, OpenInFull and Signature always return true since they are mandatory.
@@ -336,7 +358,7 @@ private:
      * @return true if the requested Positioning is supported
      *        false, otherwise
      */
-    bool IsSupportedOverallTargetPositioning(TargetPositionEnum positioning);
+    bool IsSupportedOverallTargetPositioning(TargetPositionEnum positioning) const;
 
     /**
      * @brief Update the stored countdown time
@@ -353,10 +375,13 @@ private:
     CHIP_ERROR SetCountdownTime(const DataModel::Nullable<ElapsedS> & countdownTime, bool fromDelegate);
 
     /**
-     * @brief API to trigger countdown time update from the cluster logic.
-     *        Function calls the SetCountdownTime function with the fromDelegate parameter set to false.
+     * @brief Triggers an update to report a new countdown time from cluster logic.
+     *        This method should be called whenever the cluster logic needs to update the countdown time.
      *
-     *        See SetCountdownTime function comment above
+     * @param[in] countdownTime - Updated countdown time to be reported.
+     *
+     * @return CHIP_NO_ERROR if the countdown time is set successfully.
+     *         Returns an appropriate error code if the countdown time update fails
      */
     inline CHIP_ERROR SetCountdownTimeFromCluster(const DataModel::Nullable<ElapsedS> & countdownTime)
     {
@@ -374,12 +399,6 @@ private:
      *         CHIP_ERROR_INVALID_ARGUMENT if argument are not valid
      */
     CHIP_ERROR SetOverallTarget(const DataModel::Nullable<GenericOverallTarget> & overallTarget);
-
-    bool mIsInitialized = false;
-    DelegateBase & mDelegate;
-    ClusterConformance mConformance;
-    ClusterState mState;
-    MatterContext & mMatterContext;
 };
 
 } // namespace ClosureControl
