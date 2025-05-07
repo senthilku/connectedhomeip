@@ -726,7 +726,11 @@ CHIP_ERROR Storage::GetProvisionRequest(bool & value)
 #ifdef SL_MATTER_ENABLE_OTA_ENCRYPTION
 CHIP_ERROR Storage::SetOtaTlvEncryptionKey(const ByteSpan & value)
 {
+#if defined(SL_MBEDTLS_USE_TINYCRYPT)
     return CHIP_ERROR_NOT_IMPLEMENTED;
+#else  // MBEDTLS_USE_PSA_CRYPTO
+    return CHIP_ERROR_NOT_IMPLEMENTED;
+#endif // SL_MBEDTLS_USE_TINYCRYPT
 }
 #endif // SL_MATTER_ENABLE_OTA_ENCRYPTION
 
