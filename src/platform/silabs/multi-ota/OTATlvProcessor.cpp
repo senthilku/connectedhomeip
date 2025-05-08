@@ -109,7 +109,16 @@ CHIP_ERROR OTADataAccumulator::Accumulate(ByteSpan & block)
 CHIP_ERROR OTATlvProcessor::vOtaProcessInternalEncryption(MutableByteSpan & block)
 {
 #if defined(SL_MBEDTLS_USE_TINYCRYPT)
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    uint8_t temp[16] = { 0 };
+    MutableByteSpan key(temp, sizeof(temp));
+    size_t size    = 0;
+    uint32_t keyId;
+    CHIP_ERROR err = (Flash::Get(Parameters::ID::kOtaTlvEncryptionKey, key.data(), key.size(), size));
+    ReturnErrorOnFailure(err);
+
+    chip::DeviceLayer::Silabs::OtaTlvEncryptionKey::OtaTlvEncryptionKey key(key.data());
+    key.Decrypt(block, mIVOffset);
+    return CHIP_NO_ERROR;
 #else  // MBEDTLS_USE_PSA_CRYPTO
     uint32_t keyId;
     SilabsConfig::ReadConfigValue(SilabsConfig::kOtaTlvEncryption_KeyId, keyId);

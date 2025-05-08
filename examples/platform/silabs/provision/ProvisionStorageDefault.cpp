@@ -666,8 +666,10 @@ CHIP_ERROR Storage::GetProvisionRequest(bool & value)
 CHIP_ERROR Storage::SetOtaTlvEncryptionKey(const ByteSpan & value)
 {
 #if defined(SL_MBEDTLS_USE_TINYCRYPT)
-    //TODO
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    //Need to Check
+    chip::DeviceLayer::Silabs::OtaTlvEncryptionKey::OtaTlvEncryptionKey key;
+    ReturnErrorOnFailure(key.Import(value.data(), value.size()));
+    return SilabsConfig::WriteConfigValue(SilabsConfig::kOtaTlvEncryption_KeyId, key.GetId());
 #else  // MBEDTLS_USE_PSA_CRYPTO
     chip::DeviceLayer::Silabs::OtaTlvEncryptionKey::OtaTlvEncryptionKey key;
     ReturnErrorOnFailure(key.Import(value.data(), value.size()));
