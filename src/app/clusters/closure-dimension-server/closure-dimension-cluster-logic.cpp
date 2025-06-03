@@ -65,6 +65,7 @@ CHIP_ERROR ClusterLogic::Init(const ClusterConformance & conformance, const Clus
 // TODO: CurrentState should be QuietReporting.
 CHIP_ERROR ClusterLogic::SetCurrentState(const DataModel::Nullable<GenericCurrentStateStruct> & incomingCurrentState)
 {
+    ChipLogError(AppServer, "In SetCurrentState");
     assertChipStackLockedByCurrentThread();
 
     VerifyOrReturnError(mInitialized, CHIP_ERROR_INCORRECT_STATE);
@@ -107,11 +108,13 @@ CHIP_ERROR ClusterLogic::SetCurrentState(const DataModel::Nullable<GenericCurren
     mState.currentState = incomingCurrentState;
     mMatterContext.MarkDirty(Attributes::CurrentState::Id);
 
+    ChipLogError(AppServer, "SetCurrentState Done");
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ClusterLogic::SetTarget(const DataModel::Nullable<GenericTargetStruct> & incomingTarget)
 {
+    ChipLogError(AppServer, "In SetTarget");
     assertChipStackLockedByCurrentThread();
 
     VerifyOrReturnError(mInitialized, CHIP_ERROR_INCORRECT_STATE);
@@ -160,6 +163,7 @@ CHIP_ERROR ClusterLogic::SetTarget(const DataModel::Nullable<GenericTargetStruct
     mState.target = incomingTarget;
     mMatterContext.MarkDirty(Attributes::Target::Id);
 
+    ChipLogError(AppServer, "SetTarget Done");
     return CHIP_NO_ERROR;
 }
 

@@ -92,6 +92,8 @@ public:
      */
     PrintOnlyDelegate & GetDelegate() { return mDelegate; }
 
+    void OnActionComplete(uint8_t action);
+
 private:
     EndpointId mEndpoint = kInvalidEndpointId;
     MatterContext mContext;

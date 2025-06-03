@@ -57,8 +57,8 @@ enum class ClosureControlTestEventTrigger : uint64_t
 Status PrintOnlyDelegate::HandleCalibrateCommand(DataModel::Nullable<ElapsedS> & countdownTime)
 {
     ChipLogError(AppServer, "###########HandleCalibrateCommand###############");
+    mLogic->SetCountdownTimeFromDelegate(30); // Set a default countdown time for calibration
     ClosureManager::GetInstance().OnCalibrateCommand(countdownTime);
-    // Add the calibration logic here
     return Status::Success;
 }
 
@@ -68,7 +68,6 @@ Status PrintOnlyDelegate::HandleMoveToCommand(const Optional<TargetPositionEnum>
 {
     ChipLogProgress(AppServer, "###########HandleMoveToCommand###############");
     ClosureManager::GetInstance().OnMoveToCommand(countdownTime);
-    // Add the move to logic here
     return Status::Success;
 }
 
@@ -177,64 +176,68 @@ CHIP_ERROR ClosureControlEndpoint::Init()
 
 void ClosureControlEndpoint::OnActionComplete(uint8_t action) 
 {
-    ChipLogError(AppServer, "#######OnActionComplete 0############");
+    ChipLogError(AppServer, "#######In OnActionComplete############");
     ClosureManager::Action_t closureAction = static_cast<ClosureManager::Action_t>(action);
     switch (closureAction)
     {
     case ClosureManager::Action_t::STOP_ACTION:
-        mLogic.SetCountdownTimeFromDelegate(0);
-            ChipLogError(AppServer, "#######OnActionComplete 3############");
-        mLogic.GenerateMovementCompletedEvent();
-            ChipLogError(AppServer, "#######OnActionComplete 4############");
-        break;
-    case ClosureManager::Action_t::CALIBRATE_ACTION:
     {
-        DataModel::Nullable<GenericOverallState> overallState = DataModel::NullNullable;
+        ChipLogError(AppServer, "#######In STOP_ACTION ############");
         mLogic.SetMainState(MainStateEnum::kStopped);
-        ChipLogError(AppServer, "#######OnActionComplete 5-1############");
-        mLogic.SetOverallState(overallState);
-            ChipLogError(AppServer, "#######OnActionComplete 5############");
+        ClusterState state = mLogic.GetState();
+
+        if (!state.mOverallState.IsNull())
+        {
+            const auto & presentState = state.mOverallState.Value();
+            state.mOverallState.Value().Set(
+                MakeOptional(MakeNullable(PositioningEnum::kPartiallyOpened)),
+                presentState.latch.HasValue() && !presentState.latch.Value().IsNull()
+                    ? MakeOptional(MakeNullable(presentState.latch.Value().Value()))
+                    : NullOptional,
+                presentState.speed.HasValue() && !presentState.speed.Value().IsNull()
+                    ? MakeOptional(MakeNullable(presentState.speed.Value().Value()))
+                    : NullOptional,
+                presentState.secureState.HasValue()
+                    ? MakeOptional(MakeNullable(presentState.secureState.Value().Value()))
+                    : NullOptional
+            );
+        } else {
+            state.mOverallState.SetNonNull().Set(
+                MakeOptional(MakeNullable(PositioningEnum::kPartiallyOpened)),
+                NullOptional, NullOptional, NullOptional
+            );
+        }
+
+        mLogic.SetOverallState(state.mOverallState);
         mLogic.SetCountdownTimeFromDelegate(0);
-            ChipLogError(AppServer, "#######OnActionComplete 6############");
         mLogic.GenerateMovementCompletedEvent();
-            ChipLogError(AppServer, "#######OnActionComplete 7############");
+
+        ChipLogError(AppServer, "####### STOP_ACTION done ############");
+        break;
+    }
+    case ClosureManager::Action_t::CALIBRATE_ACTION:
+    {  
+        ChipLogError(AppServer, "#######In CALIBRATE_ACTION ############");
+        
+        DataModel::Nullable<GenericOverallState> overallState(
+        GenericOverallState(MakeOptional(DataModel::MakeNullable(PositioningEnum::kFullyClosed)),
+                            MakeOptional(DataModel::MakeNullable(true)),
+                            MakeOptional(DataModel::MakeNullable(Globals::ThreeLevelAutoEnum::kAuto)),
+                            MakeOptional(DataModel::MakeNullable(true))));
+        DataModel::Nullable<GenericOverallTarget> overallTarget = DataModel::NullNullable;
+        
+        mLogic.SetMainState(MainStateEnum::kStopped);
+        mLogic.SetOverallState(overallState);
+        mLogic.SetOverallTarget(overallTarget);
+        mLogic.SetCountdownTimeFromDelegate(0);
+        mLogic.GenerateMovementCompletedEvent();
+
+        ChipLogError(AppServer, "####### CALIBRATE_ACTION done ############");
         break;
     }
     case ClosureManager::Action_t::MOVE_TO_ACTION:
     {
-        ClusterState state;
-        state = mLogic.GetState();
-        ChipLogError(AppServer, "#######OnActionComplete 8############");
-        
-        if (!state.mOverallTarget.IsNull())
-        {
-            const auto & target = state.mOverallTarget.Value();
-            state.mOverallState.Value().Set(
-                target.position.HasValue()
-                    ? MakeOptional(MakeNullable(static_cast<PositioningEnum>(target.position.Value())))
-                    : NullOptional,
-                target.latch.HasValue()
-                    ? MakeOptional(MakeNullable(target.latch.Value()))
-                    : NullOptional,
-                target.speed.HasValue()
-                    ? MakeOptional(MakeNullable(target.speed.Value()))
-                    : NullOptional,
-                NullOptional // secureState not present in target
-            );
-        }
-        else
-        {
-            state.mOverallState.SetNull();
-        }
-
-        mLogic.SetOverallState(state.mOverallState);
-        ChipLogError(AppServer, "#######OnActionComplete 5############");
-        mLogic.SetMainState(MainStateEnum::kStopped);
-        ChipLogError(AppServer, "#######OnActionComplete 9############");
-        mLogic.SetCountdownTimeFromDelegate(0);
-            ChipLogError(AppServer, "#######OnActionComplete 6############");
-        mLogic.GenerateMovementCompletedEvent();
-            ChipLogError(AppServer, "#######OnActionComplete 7############");
+        //TODO
         break;
     }
     default:

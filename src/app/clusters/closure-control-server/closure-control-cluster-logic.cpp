@@ -222,12 +222,12 @@ CHIP_ERROR ClusterLogic::SetMainState(MainStateEnum mainState)
 
 CHIP_ERROR ClusterLogic::SetOverallState(const DataModel::Nullable<GenericOverallState> & overallState)
 {
-    ChipLogError(AppServer, "SetOverallState: 0");
+    ChipLogError(AppServer, "In SetOverallState");
     assertChipStackLockedByCurrentThread();
-    ChipLogError(AppServer, "SetOverallState: 1");
+
     VerifyOrReturnError(mIsInitialized, CHIP_ERROR_INCORRECT_STATE);
     VerifyOrReturnError(mState.mOverallState != overallState, CHIP_NO_ERROR);
-    ChipLogError(AppServer, "SetOverallState: 2");
+
     if (!overallState.IsNull())
     {
         const GenericOverallState & incomingOverallState = overallState.Value();
@@ -282,16 +282,16 @@ CHIP_ERROR ClusterLogic::SetOverallState(const DataModel::Nullable<GenericOveral
         }
     }
     
-    ChipLogError(AppServer, "SetOverallState: 3");
     mState.mOverallState = overallState;
     mMatterContext.MarkDirty(Attributes::OverallState::Id);
-        ChipLogError(AppServer, "SetOverallState: 4");
+    ChipLogError(AppServer, "SetOverallState Done");
 
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ClusterLogic::SetOverallTarget(const DataModel::Nullable<GenericOverallTarget> & overallTarget)
 {
+    ChipLogError(AppServer, "In SetOverallTarget");
     assertChipStackLockedByCurrentThread();
 
     VerifyOrReturnError(mIsInitialized, CHIP_ERROR_INCORRECT_STATE);
@@ -340,6 +340,7 @@ CHIP_ERROR ClusterLogic::SetOverallTarget(const DataModel::Nullable<GenericOvera
     mState.mOverallTarget = overallTarget;
     mMatterContext.MarkDirty(Attributes::OverallTarget::Id);
 
+    ChipLogError(AppServer, "SetOverallTarget Done");
     return CHIP_NO_ERROR;
 }
 
@@ -410,6 +411,7 @@ CHIP_ERROR ClusterLogic::GetCurrentErrorList(const AttributeValueEncoder::ListEn
 
 Protocols::InteractionModel::Status ClusterLogic::HandleStop()
 {
+    ChipLogError(AppServer, "In Stop Command");
     VerifyOrDieWithMsg(mIsInitialized, AppServer, "Stop Command called before Initialization of closure");
 
     // Stop command can only be supported if closure doesnt support instantaneous features
@@ -430,17 +432,17 @@ Protocols::InteractionModel::Status ClusterLogic::HandleStop()
                             ChipLogError(AppServer, "Stop Command: Failed to set MainState to Stopped"));
     }
 
+    ChipLogError(AppServer, "Stop Command Done");
     return Status::Success;
 }
 
 Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPositionEnum> position, Optional<bool> latch,
                                                                Optional<Globals::ThreeLevelAutoEnum> speed)
 {
-    ChipLogError(AppServer, "MoveTo Command: 1");
+    ChipLogError(AppServer, "In MoveTo Command");
     VerifyOrDieWithMsg(mIsInitialized, AppServer, "MoveTo Command called before Initialization of closure");
 
     GenericOverallTarget target;
-        ChipLogError(AppServer, "MoveTo Command: 2");
     VerifyOrReturnError(position.HasValue() || latch.HasValue() || speed.HasValue(), Status::InvalidCommand);
 
     if (position.HasValue())
@@ -452,7 +454,7 @@ Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPo
             target.position = position;
         }
     }
-        ChipLogError(AppServer, "MoveTo Command: 3");
+
     if (latch.HasValue() && mConformance.HasFeature(Feature::kMotionLatching))
     {
         // If manual intervention is required to latch, respond with INVALID_IN_STATE
@@ -463,7 +465,7 @@ Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPo
 
         target.latch = latch;
     }
-        ChipLogError(AppServer, "MoveTo Command: 4");
+
     if (speed.HasValue())
     {
         VerifyOrReturnError(speed.Value() != Globals::ThreeLevelAutoEnum::kUnknownEnumValue, Status::ConstraintError);
@@ -473,22 +475,22 @@ Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPo
             target.speed = speed;
         }
     }
-        ChipLogError(AppServer, "MoveTo Command: 5");
+ 
     MainStateEnum state;
     VerifyOrReturnError(GetMainState(state) == CHIP_NO_ERROR, Status::Failure);
-        ChipLogError(AppServer, "MoveTo Command: 6");
+
     // If the MoveTo command is received in any state other than 'Moving', 'WaitingForMotion', or 'Stopped', an error code
     // INVALID_IN_STATE shall be returned.
     VerifyOrReturnError(state == MainStateEnum::kMoving || state == MainStateEnum::kWaitingForMotion ||
                             state == MainStateEnum::kStopped,
                         Status::InvalidInState);
-        ChipLogError(AppServer, "MoveTo Command: 7");
+
     // Set MainState and OverallTarget only if the delegate call to HandleMoveToCommand is successful
      DataModel::Nullable<ElapsedS> countdownTime;
     Status status = mDelegate.HandleMoveToCommand(position, latch, speed, countdownTime);
-        ChipLogError(AppServer, "MoveTo Command: 8");
+
     VerifyOrReturnValue(status == Status::Success, status);
-            ChipLogError(AppServer, "MoveTo Command: 9");
+
     if (mDelegate.IsReadyToMove())
     {
         VerifyOrReturnError(SetMainState(MainStateEnum::kMoving) == CHIP_NO_ERROR, Status::Failure,
@@ -501,45 +503,47 @@ Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPo
                             ChipLogError(AppServer, "MoveTo Command: Failed to set MainState to kWaitingForMotion"));
                                 ChipLogError(AppServer, "MoveTo Command: 11");
     }
-    ChipLogError(AppServer, "MoveTo Command: 12");
+
     VerifyOrReturnError(SetOverallTarget(DataModel::MakeNullable(target)) == CHIP_NO_ERROR, Status::Failure);
-        ChipLogError(AppServer, "MoveTo Command: 13");
+
     VerifyOrReturnError(SetCountdownTimeFromCluster(countdownTime) == CHIP_NO_ERROR, Status::Failure,
                         ChipLogError(AppServer, "Calibrate Command: Failed to set CountdownTime"));
+
+    ChipLogError(AppServer, "MoveTo Command: Done");
     return Status::Success;
 }
 
 Protocols::InteractionModel::Status ClusterLogic::HandleCalibrate()
 {
-    ChipLogError(AppServer, "Calibrate Command: 1");
+    ChipLogError(AppServer, "In Calibrate Command");
     VerifyOrDieWithMsg(mIsInitialized, AppServer, "Calibrate Command called before Initialization of closure");
-    ChipLogError(AppServer, "Calibrate Command: 2");
+
     VerifyOrReturnError(mConformance.HasFeature(Feature::kCalibration), Status::UnsupportedCommand);
-    ChipLogError(AppServer, "Calibrate Command: 3");
+
     MainStateEnum state;
     VerifyOrReturnError(GetMainState(state) == CHIP_NO_ERROR, Status::Failure);
-    ChipLogError(AppServer, "Calibrate Command: 4");
+
     // If Calibrate command is received when already in the Calibrating state,
     // the server SHALL respond with a status code of SUCCESS.
     VerifyOrReturnValue(state != MainStateEnum::kCalibrating, Status::Success);
-    ChipLogError(AppServer, "Calibrate Command: 5");
+
     // If the Calibrate command is invoked in any state other than 'Stopped', the server shall respond with INVALID_IN_STATE.
     // This check excludes the 'Calibrating' MainState as it is already validated above
     VerifyOrReturnError(state == MainStateEnum::kStopped, Status::InvalidInState);
-    ChipLogError(AppServer, "Calibrate Command: 6");
+ 
     // Set the MainState to 'Calibrating' only if the delegate call to HandleCalibrateCommand is successful
     DataModel::Nullable<ElapsedS> countdownTime;
-    ChipLogError(AppServer, "Calibrate Command: 7");
     Status status = mDelegate.HandleCalibrateCommand(countdownTime);
-    ChipLogError(AppServer, "Calibrate Command: 8");
+   
     VerifyOrReturnValue(status == Status::Success, status);
-    ChipLogError(AppServer, "Calibrate Command: 9");
+
     VerifyOrReturnError(SetCountdownTimeFromCluster(countdownTime) == CHIP_NO_ERROR, Status::Failure,
                         ChipLogError(AppServer, "Calibrate Command: Failed to set CountdownTime"));
-    ChipLogError(AppServer, "Calibrate Command: 10");
+    
     VerifyOrReturnError(SetMainState(MainStateEnum::kCalibrating) == CHIP_NO_ERROR, Status::Failure,
                         ChipLogError(AppServer, "Calibrate Command: Failed to set MainState to Calibrating"));
-    ChipLogError(AppServer, "Calibrate Command: 11");
+
+    ChipLogError(AppServer, "Calibrate Command: Done");
     return Status::Success;
 }
 

@@ -17,6 +17,7 @@
  */
 
 #include <ClosureDimensionEndpoint.h>
+#include <ClosureManager.h>
 #include <app-common/zap-generated/cluster-enums.h>
 #include <app-common/zap-generated/cluster-objects.h>
 #include <protocols/interaction_model/StatusCode.h>
@@ -58,4 +59,85 @@ CHIP_ERROR ClosureDimensionEndpoint::Init()
     ReturnErrorOnFailure(mLogic.Init(conformance, clusterInitParameters));
     ReturnErrorOnFailure(mInterface.Init());
     return CHIP_NO_ERROR;
+}
+
+void ClosureDimensionEndpoint::OnActionComplete(uint8_t action) 
+{
+    ChipLogError(AppServer, "####### CLDM IN ActionComplete 0############");
+    ClosureManager::Action_t closureAction = static_cast<ClosureManager::Action_t>(action);
+
+    if (closureAction == ClosureManager::Action_t::INVALID_ACTION)
+    {
+        ChipLogError(AppServer, "Invalid action received in OnActionComplete");
+        return;
+    }
+
+    // Call the logic to handle the action completion
+    switch (closureAction)
+    {
+    case ClosureManager::Action_t::STOP_ACTION:
+    {
+        ChipLogError(AppServer, "####### CLDM IN STOP_ACTION ############");
+        ClusterState state = mLogic.GetState();
+
+        if (!state.currentState.IsNull())
+        {
+            const auto & presentState = state.currentState.Value();
+            state.currentState.Value().Set(
+                MakeOptional(5000),
+                presentState.latch.HasValue()
+                    ? MakeOptional(presentState.latch.Value())
+                    : NullOptional,
+                presentState.speed.HasValue()
+                    ? MakeOptional(presentState.speed.Value())
+                    : NullOptional
+            );
+        } else {
+            state.currentState.SetNonNull().Set(
+                MakeOptional(5000), NullOptional, NullOptional);
+        }
+
+
+        mLogic.SetCurrentState(state.currentState);
+
+        GenericTargetStruct target(state.currentState.Value().position.HasValue()
+                    ? MakeOptional(state.currentState.Value().position.Value())
+                    : NullOptional,
+                    state.currentState.Value().latch.HasValue()
+                    ? MakeOptional(state.currentState.Value().latch.Value())
+                    : NullOptional,
+                    state.currentState.Value().speed.HasValue()
+                    ? MakeOptional(state.currentState.Value().speed.Value())
+                    : NullOptional
+                    );
+
+        mLogic.SetTarget(DataModel::MakeNullable(target));
+
+        ChipLogError(AppServer, "####### CLDM STOP_ACTION done ############");
+        break;
+    }
+    case ClosureManager::Action_t::CALIBRATE_ACTION:
+    {
+        ChipLogError(AppServer, "####### CLDM IN CALIBRATE_ACTION ############");
+        DataModel::Nullable<GenericCurrentStateStruct> currentState(
+            GenericCurrentStateStruct(MakeOptional(10000),
+                                      MakeOptional(true),
+                                      MakeOptional(Globals::ThreeLevelAutoEnum::kAuto)));
+        DataModel::Nullable<GenericTargetStruct> target{ DataModel::NullNullable };
+
+        mLogic.SetCurrentState(currentState);
+        mLogic.SetTarget(target);
+        mLogic.SetTarget(target);
+        ChipLogError(AppServer, "####### CLDM CALIBRATE_ACTION done ############");
+        break;
+    }
+    case ClosureManager::Action_t::MOVE_TO_ACTION:
+    {
+        //TODO
+        break;
+    }
+    default:
+        ChipLogError(AppServer, "Invalid action received in OnActionComplete");
+        return;
+    }
 }

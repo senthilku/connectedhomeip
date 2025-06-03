@@ -34,8 +34,9 @@ void ApplicationInit()
 {
     DeviceLayer::PlatformMgr().LockChipStack();
 
+    ChipLogDetail(NotSpecified, "ApplicationInit Start()");
     ClosureManager::GetInstance().Init();
-
+    ChipLogDetail(NotSpecified, "ApplicationInit Complete()");
     DeviceLayer::PlatformMgr().UnlockChipStack();
 }
 
