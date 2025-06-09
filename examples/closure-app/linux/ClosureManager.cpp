@@ -307,6 +307,7 @@ void ClosureManager::HandleClosureAction(ClosureManager::Action_t action)
     {
       // Perform hardware stop action
       ChipLogError(AppServer, "############IN STOP_CALIBRATE_ACTION###############");
+      isCalibrationInProgress = false;
       instance.ep1.OnActionComplete(ClosureManager::Action_t::STOP_CALIBRATE_ACTION);
       instance.ep2.OnActionComplete(ClosureManager::Action_t::STOP_CALIBRATE_ACTION);
       instance.ep3.OnActionComplete(ClosureManager::Action_t::STOP_CALIBRATE_ACTION);
