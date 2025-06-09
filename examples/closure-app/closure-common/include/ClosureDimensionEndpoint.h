@@ -56,6 +56,15 @@ public:
     Status HandleStep(const StepDirectionEnum & direction, const uint16_t & numberOfSteps,
                       const Optional<Globals::ThreeLevelAutoEnum> & speed) override;
     bool IsManualLatchingNeeded() override { return false; }
+
+    // Delegate specific functions and variables
+
+    void SetLogic(ClusterLogic * logic) { mLogic = logic; }
+
+    ClusterLogic * GetLogic() const { return mLogic; }
+
+private:
+    ClusterLogic * mLogic;
 };
 
 /**
@@ -91,6 +100,7 @@ public:
      * @return Reference to the PrintOnlyDelegate instance.
      */
     PrintOnlyDelegate & GetDelegate() { return mDelegate; }
+    ClusterLogic & GetLogic() { return mLogic; }
 
     void OnActionComplete(uint8_t action);
 

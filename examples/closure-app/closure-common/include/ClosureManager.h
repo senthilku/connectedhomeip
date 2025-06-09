@@ -35,11 +35,13 @@ class ClosureManager
 public:
     enum Action_t
     {
-        CALIBRATE_ACTION = 0,
-        STOP_ACTION      = 1,
-        MOVE_TO_ACTION   = 2,
-        INVALID_ACTION   = 3
-    }Action;
+        CALIBRATE_ACTION   = 0,
+        MOVE_TO_ACTION     = 1,
+        STOP_MOTION_ACTION = 2,
+        STOP_CALIBRATE_ACTION = 3,
+
+        INVALID_ACTION     = 4
+    };
     /**
      * @brief Initializes the ClosureManager.
      *
@@ -49,9 +51,27 @@ public:
     void Init();
 
     static ClosureManager & GetInstance() { return sClosureMgr; }
-    void OnCalibrateCommand(chip::app::DataModel::Nullable<chip::ElapsedS> & countdownTime);
-    void OnMoveToCommand(chip::app::DataModel::Nullable<chip::ElapsedS> & countdownTime);
-    void OnStopCommand();
+
+    /**
+     * Handles the "Calibrate" command for the closure manager.
+     *
+     * This method initiates the calibration process for the closure system. It resets the states
+     * and targets of all endpoints to null, sets a countdown time for the calibration process,
+     * and starts a timer to handle the calibration action after a specified duration.
+     *
+     * @param countdownTime A nullable parameter representing the countdown time for calibration.
+     *                      This value is currently unused in the implementation.
+     * @return Status::Success if the calibration process is successfully initiated.
+     */
+    chip::Protocols::InteractionModel::Status OnCalibrateCommand(chip::app::DataModel::Nullable<chip::ElapsedS> & countdownTime);
+
+    chip::Protocols::InteractionModel::Status OnMoveToCommand(
+        const chip::Optional<chip::app::Clusters::ClosureControl::TargetPositionEnum> & position,
+        const chip::Optional<bool> & latch,
+        const chip::Optional<chip::app::Clusters::Globals::ThreeLevelAutoEnum> & speed,
+        chip::app::DataModel::Nullable<chip::ElapsedS> & countdownTime);
+
+    chip::Protocols::InteractionModel::Status OnStopCommand();
     
     chip::app::Clusters::ClosureControl::ClosureControlEndpoint ep1{ kClosureEndpoint };
     chip::app::Clusters::ClosureDimension::ClosureDimensionEndpoint ep2{ kClosurePanel1Endpoint };
@@ -66,13 +86,15 @@ private:
     
     /**
      * @brief
-     *  The callback function to be called when "movement timer" expires.
+     *  The callback function to be called when "calibration timer" expires.
      */
     static void HandleCalibrateActionTimer(chip::System::Layer * layer, void * aAppState);
     static void HandleStopActionTimer(chip::System::Layer * layer, void * aAppState);
     static void HandleMoveToActionTimer(chip::System::Layer * layer, void * aAppState);
     
     void HandleClosureAction(ClosureManager::Action_t action);
-
+    void HandleMotionAction();
     
+    bool isCalibrationInProgress = false;
+    bool isMoveToInProgress = false;
 };

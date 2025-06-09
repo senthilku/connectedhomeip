@@ -45,6 +45,7 @@ Status PrintOnlyDelegate::HandleStep(const StepDirectionEnum & direction, const 
 
 CHIP_ERROR ClosureDimensionEndpoint::Init()
 {
+    ChipLogProgress(AppServer, "ClosureDimensionEndpoint Init");
     ClusterConformance conformance;
     conformance.FeatureMap()
         .Set(Feature::kPositioning)
@@ -75,30 +76,18 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
     // Call the logic to handle the action completion
     switch (closureAction)
     {
-    case ClosureManager::Action_t::STOP_ACTION:
+    case ClosureManager::Action_t::STOP_MOTION_ACTION:
     {
         ChipLogError(AppServer, "####### CLDM IN STOP_ACTION ############");
         ClusterState state = mLogic.GetState();
 
-        if (!state.currentState.IsNull())
+        if (state.currentState.IsNull())
         {
-            const auto & presentState = state.currentState.Value();
-            state.currentState.Value().Set(
-                MakeOptional(5000),
-                presentState.latch.HasValue()
-                    ? MakeOptional(presentState.latch.Value())
-                    : NullOptional,
-                presentState.speed.HasValue()
-                    ? MakeOptional(presentState.speed.Value())
-                    : NullOptional
-            );
-        } else {
-            state.currentState.SetNonNull().Set(
-                MakeOptional(5000), NullOptional, NullOptional);
+            ChipLogError(AppServer, "Current state is null, cannot stop motion");
+            mLogic.SetTarget(DataModel::NullNullable);
+            return;
         }
-
-
-        mLogic.SetCurrentState(state.currentState);
+        
 
         GenericTargetStruct target(state.currentState.Value().position.HasValue()
                     ? MakeOptional(state.currentState.Value().position.Value())
@@ -110,10 +99,14 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
                     ? MakeOptional(state.currentState.Value().speed.Value())
                     : NullOptional
                     );
-
         mLogic.SetTarget(DataModel::MakeNullable(target));
 
         ChipLogError(AppServer, "####### CLDM STOP_ACTION done ############");
+        break;
+    }
+    case ClosureManager::Action_t::STOP_CALIBRATE_ACTION:
+    {
+        ChipLogError(AppServer, "####### CLDM IN STOP_CALIBRATE_ACTION ############");
         break;
     }
     case ClosureManager::Action_t::CALIBRATE_ACTION:
@@ -133,7 +126,7 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
     }
     case ClosureManager::Action_t::MOVE_TO_ACTION:
     {
-        //TODO
+        ChipLogError(AppServer, "####### CLDM IN MOVE_TO_ACTION ############");
         break;
     }
     default:

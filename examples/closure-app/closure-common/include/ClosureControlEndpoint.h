@@ -119,7 +119,7 @@ public:
      * @return Reference to the PrintOnlyDelegate instance.
      */
     PrintOnlyDelegate & GetDelegate() { return mDelegate; }
-    ClusterLogic GetLogic() const { return mLogic; }
+    ClusterLogic & GetLogic() { return mLogic; }
 
     void OnActionComplete(uint8_t action);
 
@@ -129,6 +129,11 @@ private:
     PrintOnlyDelegate mDelegate;
     ClusterLogic mLogic;
     Interface mInterface;
+
+    void HandleStopMotionAction();
+    void HandleStopCalibrateAction();
+    void HandleCalibrateAction();
+    void HandleMoveToAction();
 };
 
 } // namespace ClosureControl

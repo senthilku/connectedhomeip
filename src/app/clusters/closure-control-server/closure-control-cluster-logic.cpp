@@ -196,27 +196,6 @@ CHIP_ERROR ClusterLogic::SetMainState(MainStateEnum mainState)
     mState.mMainState = mainState;
     mMatterContext.MarkDirty(Attributes::MainState::Id);
 
-    if (!mConformance.HasFeature(Feature::kInstantaneous))
-    {
-        if (mainState == MainStateEnum::kCalibrating)
-        {
-            SetCountdownTimeFromCluster(mDelegate.GetCalibrationCountdownTime());
-        }
-        else if (mainState == MainStateEnum::kMoving)
-        {
-            SetCountdownTimeFromCluster(mDelegate.GetMovingCountdownTime());
-        }
-        else if (mainState == MainStateEnum::kWaitingForMotion)
-        {
-            SetCountdownTimeFromCluster(mDelegate.GetWaitingForMotionCountdownTime());
-        }
-        else
-        {
-            // Reset the countdown time to 0 when the main state is not in motion or calibration.
-            SetCountdownTimeFromCluster(DataModel::Nullable<ElapsedS>(0));
-        }
-    }
-
     return CHIP_NO_ERROR;
 }
 
@@ -506,9 +485,6 @@ Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPo
 
     VerifyOrReturnError(SetOverallTarget(DataModel::MakeNullable(target)) == CHIP_NO_ERROR, Status::Failure);
 
-    VerifyOrReturnError(SetCountdownTimeFromCluster(countdownTime) == CHIP_NO_ERROR, Status::Failure,
-                        ChipLogError(AppServer, "Calibrate Command: Failed to set CountdownTime"));
-
     ChipLogError(AppServer, "MoveTo Command: Done");
     return Status::Success;
 }
@@ -536,9 +512,6 @@ Protocols::InteractionModel::Status ClusterLogic::HandleCalibrate()
     Status status = mDelegate.HandleCalibrateCommand(countdownTime);
    
     VerifyOrReturnValue(status == Status::Success, status);
-
-    VerifyOrReturnError(SetCountdownTimeFromCluster(countdownTime) == CHIP_NO_ERROR, Status::Failure,
-                        ChipLogError(AppServer, "Calibrate Command: Failed to set CountdownTime"));
     
     VerifyOrReturnError(SetMainState(MainStateEnum::kCalibrating) == CHIP_NO_ERROR, Status::Failure,
                         ChipLogError(AppServer, "Calibrate Command: Failed to set MainState to Calibrating"));
