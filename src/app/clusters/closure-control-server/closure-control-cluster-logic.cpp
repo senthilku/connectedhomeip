@@ -388,6 +388,13 @@ CHIP_ERROR ClusterLogic::GetCurrentErrorList(const AttributeValueEncoder::ListEn
     return CHIP_NO_ERROR;
 }
 
+CHIP_ERROR ClusterLogic::GetFeatureMap(BitFlags<Feature> & featureMap)
+{
+    VerifyOrReturnError(mIsInitialized, CHIP_ERROR_INCORRECT_STATE);
+    featureMap = mConformance.FeatureMap();
+    return CHIP_NO_ERROR;
+}
+
 Protocols::InteractionModel::Status ClusterLogic::HandleStop()
 {
     ChipLogError(AppServer, "In Stop Command");
@@ -421,8 +428,12 @@ Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPo
     ChipLogError(AppServer, "In MoveTo Command");
     VerifyOrDieWithMsg(mIsInitialized, AppServer, "MoveTo Command called before Initialization of closure");
 
-    GenericOverallTarget target;
     VerifyOrReturnError(position.HasValue() || latch.HasValue() || speed.HasValue(), Status::InvalidCommand);
+
+    DataModel::Nullable<GenericOverallTarget> overallTarget = DataModel::NullNullable;
+    VerifyOrReturnError(GetOverallTarget(overallTarget) == CHIP_NO_ERROR, Status::Failure);
+
+    GenericOverallTarget target = overallTarget.IsNull() ? GenericOverallTarget{} : overallTarget.Value();
 
     if (position.HasValue())
     {
@@ -484,7 +495,7 @@ Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPo
     }
 
     VerifyOrReturnError(SetOverallTarget(DataModel::MakeNullable(target)) == CHIP_NO_ERROR, Status::Failure);
-
+    
     ChipLogError(AppServer, "MoveTo Command: Done");
     return Status::Success;
 }

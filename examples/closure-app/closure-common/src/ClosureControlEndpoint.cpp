@@ -158,16 +158,14 @@ CHIP_ERROR ClosureControlEndpoint::Init()
         .Set(Feature::kMotionLatching)
         .Set(Feature::kSpeed)
         .Set(Feature::kVentilation)
-        .Set(Feature::kPedestrian)
         .Set(Feature::kCalibration)
-        .Set(Feature::kProtection)
         .Set(Feature::kManuallyOperable);
     conformance.OptionalAttributes().Set(OptionalAttributeEnum::kCountdownTime);
 
     ClusterInitParameters initParams;
 
-    ReturnErrorOnFailure(mLogic.Init(conformance, initParams));
-    ReturnErrorOnFailure(mInterface.Init());
+    ReturnLogErrorOnFailure(mLogic.Init(conformance, initParams));
+    ReturnLogErrorOnFailure(mInterface.Init());
 
     return CHIP_NO_ERROR;
 }
@@ -266,10 +264,31 @@ void ClosureControlEndpoint::HandleMoveToAction()
     ChipLogError(AppServer, "#######In MOVE_TO_ACTION ############");
     ClusterState clusterState = mLogic.GetState();
 
+    // Helper function to map TargetPositionEnum to PositioningEnum
+    auto MapTargetPositionToPositioning = [](TargetPositionEnum value) -> PositioningEnum {
+        switch (value)
+        {
+        case TargetPositionEnum::kCloseInFull:
+            return PositioningEnum::kFullyClosed;
+        case TargetPositionEnum::kOpenInFull:
+            return PositioningEnum::kFullyOpened;
+        case TargetPositionEnum::kPedestrian:
+            return PositioningEnum::kOpenedForPedestrian;
+        case TargetPositionEnum::kVentilation:
+            return PositioningEnum::kOpenedForVentilation;
+        case TargetPositionEnum::kSignature:
+            return PositioningEnum::kOpenedAtSignature;
+        default:
+            return PositioningEnum::kUnknownEnumValue;
+        }
+    };
+
     auto setOverallState = [&](ClusterState & state, const auto & target, const auto &presentState) {
         DataModel::Nullable<GenericOverallState> overallState;
         overallState.SetNonNull().Set(
-        MakeOptional(MakeNullable(PositioningEnum::kPartiallyOpened)),
+        target.position.HasValue()
+            ? MakeOptional(MakeNullable(MapTargetPositionToPositioning(target.position.Value())))
+            : NullOptional,
         target.latch.HasValue() ? MakeOptional(MakeNullable(target.latch.Value())) : NullOptional,
         target.speed.HasValue() ? MakeOptional(MakeNullable(target.speed.Value())) : NullOptional,
         presentState.secureState.HasValue()

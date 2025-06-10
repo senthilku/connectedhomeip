@@ -52,6 +52,21 @@ struct GenericCurrentStateStruct : public Structs::CurrentStateStruct::Type
         speed    = speedValue;
     }
 
+    GenericCurrentStateStruct UpdatePosition(Optional<Percent100ths> positionValue) const
+    {
+        return GenericCurrentStateStruct(positionValue, latch, speed);
+    }
+
+    GenericCurrentStateStruct UpdateLatch(Optional<bool> latchValue) const
+    {
+        return GenericCurrentStateStruct(position, latchValue, speed);
+    }
+
+    GenericCurrentStateStruct UpdateSpeed(Optional<Globals::ThreeLevelAutoEnum> speedValue) const
+    {
+        return GenericCurrentStateStruct(position, latch, speedValue);
+    }
+
     bool operator==(const GenericCurrentStateStruct & rhs) const
     {
         return position == rhs.position && latch == rhs.latch && speed == rhs.speed;
@@ -88,6 +103,21 @@ struct GenericTargetStruct : public Structs::TargetStruct::Type
         position = positionValue;
         latch    = latchValue;
         speed    = speedValue;
+    }
+
+    GenericTargetStruct UpdatePosition(Optional<Percent100ths> positionValue) const
+    {
+        return GenericTargetStruct(positionValue, latch, speed);
+    }
+
+    GenericTargetStruct UpdateLatch(Optional<bool> latchValue) const
+    {
+        return GenericTargetStruct(position, latchValue, speed);
+    }
+
+    GenericTargetStruct UpdateSpeed(Optional<Globals::ThreeLevelAutoEnum> speedValue) const
+    {
+        return GenericTargetStruct(position, latch, speedValue);
     }
 
     bool operator==(const GenericTargetStruct & rhs) const

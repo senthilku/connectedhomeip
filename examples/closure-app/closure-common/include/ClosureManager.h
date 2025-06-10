@@ -91,6 +91,7 @@ private:
     static void HandleCalibrateActionTimer(chip::System::Layer * layer, void * aAppState);
     static void HandleStopActionTimer(chip::System::Layer * layer, void * aAppState);
     static void HandleMoveToActionTimer(chip::System::Layer * layer, void * aAppState);
+    static void HandleLatchActionTimer(chip::System::Layer * layer, void * aAppState);
     
     void HandleClosureAction(ClosureManager::Action_t action);
     void HandleMotionAction();

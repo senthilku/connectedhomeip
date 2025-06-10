@@ -58,6 +58,26 @@ struct GenericOverallState : public Structs::OverallStateStruct::Type
         secureState = secureStateValue;
     }
 
+    GenericOverallState UpdatePosition(Optional<DataModel::Nullable<PositioningEnum>> positionValue) const
+    {
+        return GenericOverallState(positionValue, latch, speed, secureState);
+    }
+
+    GenericOverallState UpdateLatch(Optional<DataModel::Nullable<bool>> latchValue) const
+    {
+        return GenericOverallState(positioning, latchValue, speed, secureState);
+    }
+
+    GenericOverallState UpdateSpeed(Optional<DataModel::Nullable<Globals::ThreeLevelAutoEnum>> speedValue) const
+    {
+        return GenericOverallState(positioning, latch, speedValue, secureState);
+    }
+
+    GenericOverallState UpdateSecureState(Optional<DataModel::Nullable<bool>> secureStateValue) const
+    {
+        return GenericOverallState(positioning, latch, speed, secureStateValue);
+    }
+
     bool operator==(const Structs::OverallStateStruct::Type & rhs) const
     {
         return positioning == rhs.positioning && latch == rhs.latch && speed == rhs.speed && secureState == rhs.secureState;
@@ -90,6 +110,21 @@ struct GenericOverallTarget : public Structs::OverallTargetStruct::Type
         position = targetPositionValue;
         latch    = targetLatchValue;
         speed    = speedValue;
+    }
+
+    GenericOverallTarget UpdatePosition(Optional<TargetPositionEnum>  positionValue) const
+    {
+        return GenericOverallTarget(positionValue, latch, speed);
+    }
+
+    GenericOverallTarget UpdateLatch(Optional<bool> latchValue) const
+    {
+        return GenericOverallTarget(position, latchValue, speed);
+    }
+
+    GenericOverallTarget UpdateSpeed(Optional<Globals::ThreeLevelAutoEnum> speedValue) const
+    {
+        return GenericOverallTarget(position, latch, speedValue);
     }
 
     bool operator==(const Structs::OverallTargetStruct::Type & rhs) const

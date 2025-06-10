@@ -50,15 +50,16 @@ CHIP_ERROR ClosureDimensionEndpoint::Init()
     conformance.FeatureMap()
         .Set(Feature::kPositioning)
         .Set(Feature::kMotionLatching)
-        .Set(Feature::kUnit)
         .Set(Feature::kLimitation)
-        .Set(Feature::kSpeed);
+        .Set(Feature::kSpeed)
+        .Set(Feature::kRotation);
     conformance.OptionalAttributes().Set(OptionalAttributeEnum::kOverflow);
 
     ClusterInitParameters clusterInitParameters;
+    clusterInitParameters.rotationAxis = RotationAxisEnum::kCenteredVertical;
 
-    ReturnErrorOnFailure(mLogic.Init(conformance, clusterInitParameters));
-    ReturnErrorOnFailure(mInterface.Init());
+    ReturnLogErrorOnFailure(mLogic.Init(conformance, clusterInitParameters));
+    ReturnLogErrorOnFailure(mInterface.Init());
     return CHIP_NO_ERROR;
 }
 
@@ -126,6 +127,44 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
     }
     case ClosureManager::Action_t::MOVE_TO_ACTION:
     {
+        ClusterState state = mLogic.GetState();
+        GenericCurrentStateStruct currentState;
+
+        if (state.target.IsNull())
+        {
+            ChipLogError(AppServer, "Target is null, Move to action Failed");
+            return;
+        }
+
+        if (state.currentState.IsNull())
+        {
+            ChipLogError(AppServer, "Current state is null, Move to action Failed");
+            return;
+        }
+        else
+        {
+            currentState = state.currentState.Value();
+        }
+
+        if (state.target.Value().position.HasValue())
+        {
+            currentState = currentState.UpdatePosition(
+                MakeOptional(state.target.Value().position.Value()));
+        }
+
+        if (state.target.Value().latch.HasValue())
+        {
+            currentState = currentState.UpdateLatch(
+                MakeOptional(state.target.Value().latch.Value()));
+        }
+
+        if (state.target.Value().speed.HasValue())
+        {
+            currentState = currentState.UpdateSpeed(
+                MakeOptional(state.target.Value().speed.Value()));
+        }
+
+        mLogic.SetCurrentState(DataModel::MakeNullable(currentState));
         ChipLogError(AppServer, "####### CLDM IN MOVE_TO_ACTION ############");
         break;
     }
