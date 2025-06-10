@@ -366,7 +366,7 @@ void ClosureManager::HandleMotionAction()
 
     if (IsLatchActionNeeded(ep1State)){
         ChipLogError(AppServer, "Starting latch action timer");
-        DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds32(3), HandleLatchActionTimer, this);
+        DeviceLayer::SystemLayer().StartTimer(System::Clock::Seconds32(2), HandleLatchActionTimer, this);
     } else {
       // Target reached and no latch action needed, call HandleClosureAction
       instance.HandleClosureAction(MOVE_TO_ACTION);
@@ -535,8 +535,8 @@ chip::Protocols::InteractionModel::Status ClosureManager::OnMoveToCommand(const 
       } 
       else 
       {
-          ChipLogError(AppServer, "Invalid target position for move to command");
-          return Status::Failure;
+          ep2Position = MakeOptional(static_cast<chip::Percent100ths>(5000));
+          ep3Position = MakeOptional(static_cast<chip::Percent100ths>(5000));
       }
 
         ep2Target = ep2Target.UpdatePosition(ep2Position);
