@@ -158,7 +158,9 @@ CHIP_ERROR ClosureControlEndpoint::Init()
         .Set(Feature::kMotionLatching)
         .Set(Feature::kSpeed)
         .Set(Feature::kVentilation)
+        .Set(Feature::kPedestrian)
         .Set(Feature::kCalibration)
+        .Set(Feature::kProtection)
         .Set(Feature::kManuallyOperable);
     conformance.OptionalAttributes().Set(OptionalAttributeEnum::kCountdownTime);
 
