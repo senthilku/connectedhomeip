@@ -96,6 +96,15 @@ void ClosureManager::Init()
     SetTagList(/* endpoint= */ 2, Span<const Clusters::Descriptor::Structs::SemanticTagStruct::Type>(kEp2TagList));
     SetTagList(/* endpoint= */ 3, Span<const Clusters::Descriptor::Structs::SemanticTagStruct::Type>(kEp3TagList));
 
+    VerifyOrDie(ep1.SetInitialState() == CHIP_NO_ERROR);
+    ChipLogError(AppServer, "Closure Control Endpoint Ep1 initial state set successfully");
+
+    VerifyOrDie(ep2.SetInitialState() == CHIP_NO_ERROR);
+    ChipLogError(AppServer, "Closure Dimension Endpoint Ep2 initial state set successfully");
+
+    VerifyOrDie(ep3.SetInitialState() == CHIP_NO_ERROR);
+    ChipLogError(AppServer, "Closure Dimension Endpoint Ep3 initial state set successfully");
+
     TestEventTriggerDelegate * pTestEventDelegate = Server::GetInstance().GetTestEventTriggerDelegate();
   
     if (pTestEventDelegate != nullptr)
