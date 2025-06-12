@@ -247,7 +247,7 @@ void ClosureManager::HandleStopActionTimer(System::Layer * layer, void * aAppSta
     }
 }
 
-void ClosureManager::HandleMoveToActionTimer(System::Layer * layer, void * data)
+void ClosureManager::HandleMoveToActionTimer(System::Layer * layer, void * aAppState)
 {
   ClosureManager * manager = reinterpret_cast<ClosureManager *>(aAppState);
   // ChipLogError(AppServer, "############HandleMoveToActionTimer###############");
@@ -375,7 +375,7 @@ void ClosureManager::HandleMotionAction()
                                                                                           ep3State.target.Value().position.Value());
   }
 
-  bool progressPossible = isEndpoint2ProgressPossible || isEndpoint3ProgressPossible;
+  bool progressPossible = isEndPoint2ProgressPossible || isEndPoint3ProgressPossible;
 
   ChipLogError(AppServer, "Progress Possible: %s", progressPossible ? "true" : "false");
 
