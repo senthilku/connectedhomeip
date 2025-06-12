@@ -92443,7 +92443,7 @@ public:
 |------------------------------------------------------------------------------|
 | Attributes:                                                         |        |
 | * CurrentState                                                      | 0x0000 |
-| * Target                                                            | 0x0001 |
+| * TargetState                                                       | 0x0001 |
 | * Resolution                                                        | 0x0002 |
 | * StepValue                                                         | 0x0003 |
 | * Unit                                                              | 0x0004 |
@@ -92453,6 +92453,7 @@ public:
 | * RotationAxis                                                      | 0x0008 |
 | * Overflow                                                          | 0x0009 |
 | * ModulationType                                                    | 0x000A |
+| * LatchControlModes                                                 | 0x000B |
 | * GeneratedCommandList                                              | 0xFFF8 |
 | * AcceptedCommandList                                               | 0xFFF9 |
 | * AttributeList                                                     | 0xFFFB |
@@ -92634,7 +92635,7 @@ public:
 
         dispatch_queue_t callbackQueue = dispatch_queue_create("com.chip.command", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
         __auto_type * cluster = [[MTRBaseClusterClosureDimension alloc] initWithDevice:device endpointID:@(endpointId) queue:callbackQueue];
-        [cluster readAttributeCurrentStateWithCompletion:^(MTRClosureDimensionClusterCurrentStateStruct * _Nullable value, NSError * _Nullable error) {
+        [cluster readAttributeCurrentStateWithCompletion:^(MTRClosureDimensionClusterDimensionStateStruct * _Nullable value, NSError * _Nullable error) {
             NSLog(@"ClosureDimension.CurrentState response %@", [value description]);
             if (error == nil) {
                 RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
@@ -92679,7 +92680,7 @@ public:
         }
         [cluster subscribeAttributeCurrentStateWithParams:params
             subscriptionEstablished:^() { mSubscriptionEstablished = YES; }
-            reportHandler:^(MTRClosureDimensionClusterCurrentStateStruct * _Nullable value, NSError * _Nullable error) {
+            reportHandler:^(MTRClosureDimensionClusterDimensionStateStruct * _Nullable value, NSError * _Nullable error) {
                 NSLog(@"ClosureDimension.CurrentState response %@", [value description]);
                 if (error == nil) {
                     RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
@@ -92697,34 +92698,34 @@ public:
 #if MTR_ENABLE_PROVISIONAL
 
 /*
- * Attribute Target
+ * Attribute TargetState
  */
-class ReadClosureDimensionTarget : public ReadAttribute {
+class ReadClosureDimensionTargetState : public ReadAttribute {
 public:
-    ReadClosureDimensionTarget()
-        : ReadAttribute("target")
+    ReadClosureDimensionTargetState()
+        : ReadAttribute("target-state")
     {
     }
 
-    ~ReadClosureDimensionTarget()
+    ~ReadClosureDimensionTargetState()
     {
     }
 
     CHIP_ERROR SendCommand(MTRBaseDevice * device, chip::EndpointId endpointId) override
     {
         constexpr chip::ClusterId clusterId = chip::app::Clusters::ClosureDimension::Id;
-        constexpr chip::AttributeId attributeId = chip::app::Clusters::ClosureDimension::Attributes::Target::Id;
+        constexpr chip::AttributeId attributeId = chip::app::Clusters::ClosureDimension::Attributes::TargetState::Id;
 
         ChipLogProgress(chipTool, "Sending cluster (0x%08" PRIX32 ") ReadAttribute (0x%08" PRIX32 ") on endpoint %u", endpointId, clusterId, attributeId);
 
         dispatch_queue_t callbackQueue = dispatch_queue_create("com.chip.command", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
         __auto_type * cluster = [[MTRBaseClusterClosureDimension alloc] initWithDevice:device endpointID:@(endpointId) queue:callbackQueue];
-        [cluster readAttributeTargetWithCompletion:^(MTRClosureDimensionClusterTargetStruct * _Nullable value, NSError * _Nullable error) {
-            NSLog(@"ClosureDimension.Target response %@", [value description]);
+        [cluster readAttributeTargetStateWithCompletion:^(MTRClosureDimensionClusterDimensionStateStruct * _Nullable value, NSError * _Nullable error) {
+            NSLog(@"ClosureDimension.TargetState response %@", [value description]);
             if (error == nil) {
                 RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
             } else {
-                LogNSError("ClosureDimension Target read Error", error);
+                LogNSError("ClosureDimension TargetState read Error", error);
                 RemoteDataModelLogger::LogAttributeErrorAsJSON(@(endpointId), @(clusterId), @(attributeId), error);
             }
             SetCommandExitStatus(error);
@@ -92733,21 +92734,21 @@ public:
     }
 };
 
-class SubscribeAttributeClosureDimensionTarget : public SubscribeAttribute {
+class SubscribeAttributeClosureDimensionTargetState : public SubscribeAttribute {
 public:
-    SubscribeAttributeClosureDimensionTarget()
-        : SubscribeAttribute("target")
+    SubscribeAttributeClosureDimensionTargetState()
+        : SubscribeAttribute("target-state")
     {
     }
 
-    ~SubscribeAttributeClosureDimensionTarget()
+    ~SubscribeAttributeClosureDimensionTargetState()
     {
     }
 
     CHIP_ERROR SendCommand(MTRBaseDevice * device, chip::EndpointId endpointId) override
     {
         constexpr chip::ClusterId clusterId = chip::app::Clusters::ClosureDimension::Id;
-        constexpr chip::CommandId attributeId = chip::app::Clusters::ClosureDimension::Attributes::Target::Id;
+        constexpr chip::CommandId attributeId = chip::app::Clusters::ClosureDimension::Attributes::TargetState::Id;
 
         ChipLogProgress(chipTool, "Sending cluster (0x%08" PRIX32 ") ReportAttribute (0x%08" PRIX32 ") on endpoint %u", clusterId, attributeId, endpointId);
         dispatch_queue_t callbackQueue = dispatch_queue_create("com.chip.command", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
@@ -92762,10 +92763,10 @@ public:
         if (mAutoResubscribe.HasValue()) {
             params.resubscribeAutomatically = mAutoResubscribe.Value();
         }
-        [cluster subscribeAttributeTargetWithParams:params
+        [cluster subscribeAttributeTargetStateWithParams:params
             subscriptionEstablished:^() { mSubscriptionEstablished = YES; }
-            reportHandler:^(MTRClosureDimensionClusterTargetStruct * _Nullable value, NSError * _Nullable error) {
-                NSLog(@"ClosureDimension.Target response %@", [value description]);
+            reportHandler:^(MTRClosureDimensionClusterDimensionStateStruct * _Nullable value, NSError * _Nullable error) {
+                NSLog(@"ClosureDimension.TargetState response %@", [value description]);
                 if (error == nil) {
                     RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
                 } else {
@@ -93531,6 +93532,91 @@ public:
             subscriptionEstablished:^() { mSubscriptionEstablished = YES; }
             reportHandler:^(NSNumber * _Nullable value, NSError * _Nullable error) {
                 NSLog(@"ClosureDimension.ModulationType response %@", [value description]);
+                if (error == nil) {
+                    RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
+                } else {
+                    RemoteDataModelLogger::LogAttributeErrorAsJSON(@(endpointId), @(clusterId), @(attributeId), error);
+                }
+                SetCommandExitStatus(error);
+            }];
+
+        return CHIP_NO_ERROR;
+    }
+};
+
+#endif // MTR_ENABLE_PROVISIONAL
+#if MTR_ENABLE_PROVISIONAL
+
+/*
+ * Attribute LatchControlModes
+ */
+class ReadClosureDimensionLatchControlModes : public ReadAttribute {
+public:
+    ReadClosureDimensionLatchControlModes()
+        : ReadAttribute("latch-control-modes")
+    {
+    }
+
+    ~ReadClosureDimensionLatchControlModes()
+    {
+    }
+
+    CHIP_ERROR SendCommand(MTRBaseDevice * device, chip::EndpointId endpointId) override
+    {
+        constexpr chip::ClusterId clusterId = chip::app::Clusters::ClosureDimension::Id;
+        constexpr chip::AttributeId attributeId = chip::app::Clusters::ClosureDimension::Attributes::LatchControlModes::Id;
+
+        ChipLogProgress(chipTool, "Sending cluster (0x%08" PRIX32 ") ReadAttribute (0x%08" PRIX32 ") on endpoint %u", endpointId, clusterId, attributeId);
+
+        dispatch_queue_t callbackQueue = dispatch_queue_create("com.chip.command", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
+        __auto_type * cluster = [[MTRBaseClusterClosureDimension alloc] initWithDevice:device endpointID:@(endpointId) queue:callbackQueue];
+        [cluster readAttributeLatchControlModesWithCompletion:^(NSNumber * _Nullable value, NSError * _Nullable error) {
+            NSLog(@"ClosureDimension.LatchControlModes response %@", [value description]);
+            if (error == nil) {
+                RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
+            } else {
+                LogNSError("ClosureDimension LatchControlModes read Error", error);
+                RemoteDataModelLogger::LogAttributeErrorAsJSON(@(endpointId), @(clusterId), @(attributeId), error);
+            }
+            SetCommandExitStatus(error);
+        }];
+        return CHIP_NO_ERROR;
+    }
+};
+
+class SubscribeAttributeClosureDimensionLatchControlModes : public SubscribeAttribute {
+public:
+    SubscribeAttributeClosureDimensionLatchControlModes()
+        : SubscribeAttribute("latch-control-modes")
+    {
+    }
+
+    ~SubscribeAttributeClosureDimensionLatchControlModes()
+    {
+    }
+
+    CHIP_ERROR SendCommand(MTRBaseDevice * device, chip::EndpointId endpointId) override
+    {
+        constexpr chip::ClusterId clusterId = chip::app::Clusters::ClosureDimension::Id;
+        constexpr chip::CommandId attributeId = chip::app::Clusters::ClosureDimension::Attributes::LatchControlModes::Id;
+
+        ChipLogProgress(chipTool, "Sending cluster (0x%08" PRIX32 ") ReportAttribute (0x%08" PRIX32 ") on endpoint %u", clusterId, attributeId, endpointId);
+        dispatch_queue_t callbackQueue = dispatch_queue_create("com.chip.command", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
+        __auto_type * cluster = [[MTRBaseClusterClosureDimension alloc] initWithDevice:device endpointID:@(endpointId) queue:callbackQueue];
+        __auto_type * params = [[MTRSubscribeParams alloc] initWithMinInterval:@(mMinInterval) maxInterval:@(mMaxInterval)];
+        if (mKeepSubscriptions.HasValue()) {
+            params.replaceExistingSubscriptions = !mKeepSubscriptions.Value();
+        }
+        if (mFabricFiltered.HasValue()) {
+            params.filterByFabric = mFabricFiltered.Value();
+        }
+        if (mAutoResubscribe.HasValue()) {
+            params.resubscribeAutomatically = mAutoResubscribe.Value();
+        }
+        [cluster subscribeAttributeLatchControlModesWithParams:params
+            subscriptionEstablished:^() { mSubscriptionEstablished = YES; }
+            reportHandler:^(NSNumber * _Nullable value, NSError * _Nullable error) {
+                NSLog(@"ClosureDimension.LatchControlModes response %@", [value description]);
                 if (error == nil) {
                     RemoteDataModelLogger::LogAttributeAsJSON(@(endpointId), @(clusterId), @(attributeId), value);
                 } else {
@@ -192849,8 +192935,8 @@ void registerClusterClosureDimension(Commands & commands)
         make_unique<SubscribeAttributeClosureDimensionCurrentState>(), //
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
-        make_unique<ReadClosureDimensionTarget>(), //
-        make_unique<SubscribeAttributeClosureDimensionTarget>(), //
+        make_unique<ReadClosureDimensionTargetState>(), //
+        make_unique<SubscribeAttributeClosureDimensionTargetState>(), //
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
         make_unique<ReadClosureDimensionResolution>(), //
@@ -192887,6 +192973,10 @@ void registerClusterClosureDimension(Commands & commands)
 #if MTR_ENABLE_PROVISIONAL
         make_unique<ReadClosureDimensionModulationType>(), //
         make_unique<SubscribeAttributeClosureDimensionModulationType>(), //
+#endif // MTR_ENABLE_PROVISIONAL
+#if MTR_ENABLE_PROVISIONAL
+        make_unique<ReadClosureDimensionLatchControlModes>(), //
+        make_unique<SubscribeAttributeClosureDimensionLatchControlModes>(), //
 #endif // MTR_ENABLE_PROVISIONAL
 #if MTR_ENABLE_PROVISIONAL
         make_unique<ReadClosureDimensionGeneratedCommandList>(), //
