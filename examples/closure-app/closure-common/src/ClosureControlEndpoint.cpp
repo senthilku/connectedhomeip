@@ -172,6 +172,26 @@ CHIP_ERROR ClosureControlEndpoint::Init()
     return CHIP_NO_ERROR;
 }
 
+CHIP_ERROR ClosureControlEndpoint::SetInitialState()
+{
+    ChipLogProgress(AppServer, "ClosureControlEndpoint SetInitialState");
+    mLogic.SetCountdownTimeFromDelegate(NullNullable);
+    mLogic.SetMainState(MainStateEnum::kStopped);
+
+    DataModel::Nullable<GenericOverallState> overallState(
+        GenericOverallState(MakeOptional(DataModel::MakeNullable(PositioningEnum::kFullyClosed)),
+                            MakeOptional(DataModel::MakeNullable(true)),
+                            MakeOptional(DataModel::MakeNullable(Globals::ThreeLevelAutoEnum::kAuto)),
+                            MakeOptional(DataModel::MakeNullable(true))));
+    mLogic.SetOverallState(overallState);
+    DataModel::Nullable<GenericOverallTarget> overallTarget(
+        GenericOverallTarget(NullOptional,
+                             NullOptional,
+                             MakeOptional(Globals::ThreeLevelAutoEnum::kAuto)));
+    mLogic.SetOverallTarget(overallTarget);
+    return CHIP_NO_ERROR;
+}
+
 void ClosureControlEndpoint::OnActionComplete(uint8_t action) 
 {
     ChipLogError(AppServer, "#######In OnActionComplete############");

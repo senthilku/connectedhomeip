@@ -86,6 +86,10 @@ void ClosureManager::Init()
     SetTagList(/* endpoint= */ 2, Span<const Clusters::Descriptor::Structs::SemanticTagStruct::Type>(kEp2TagList));
     SetTagList(/* endpoint= */ 3, Span<const Clusters::Descriptor::Structs::SemanticTagStruct::Type>(kEp3TagList));
 
+    ep1.SetInitialState();
+    ep2.SetInitialState();
+    ep3.SetInitialState();
+
     DeviceLayer::PlatformMgr().UnlockChipStack();
 }
 

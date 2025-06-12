@@ -114,6 +114,16 @@ public:
     CHIP_ERROR Init();
 
     /**
+     * @brief Sets the initial state for the closure control endpoint.
+     *
+     * This method initializes the state of the closure control endpoint to its default or starting values.
+     * It should be called during the setup or reset process to ensure the endpoint is in a known state.
+     *
+     * @return CHIP_ERROR Returns CHIP_NO_ERROR on success, or an appropriate error code on failure.
+     */
+    CHIP_ERROR SetInitialState();
+
+    /**
      * @brief Retrieves the delegate associated with this Closure Control endpoint.
      *
      * @return Reference to the PrintOnlyDelegate instance.

@@ -57,9 +57,38 @@ CHIP_ERROR ClosureDimensionEndpoint::Init()
 
     ClusterInitParameters clusterInitParameters;
     clusterInitParameters.rotationAxis = RotationAxisEnum::kCenteredVertical;
+    clusterInitParameters.translationDirection = TranslationDirectionEnum::kDownward;
+    clusterInitParameters.modulationType = ModulationTypeEnum::kVentilation;
 
     ReturnLogErrorOnFailure(mLogic.Init(conformance, clusterInitParameters));
     ReturnLogErrorOnFailure(mInterface.Init());
+    return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR ClosureDimensionEndpoint::SetInitialState()
+{
+    ChipLogProgress(AppServer, "ClosureDimensionEndpoint SetInitialState");
+
+    DataModel::Nullable<GenericCurrentStateStruct> currentState(
+        GenericCurrentStateStruct(MakeOptional(10000), MakeOptional(true), MakeOptional(Globals::ThreeLevelAutoEnum::kAuto)));
+    mLogic.SetCurrentState(currentState);
+
+    DataModel::Nullable<GenericTargetStruct> target(
+        GenericTargetStruct(NullOptional, NullOptional, MakeOptional(Globals::ThreeLevelAutoEnum::kAuto))
+    );
+    mLogic.SetTarget(target);
+
+    mLogic.SetResolution(Percent100ths(100));
+    mLogic.SetStepValue(1000);
+    mLogic.SetUnit(ClosureUnitEnum::kUnknownEnumValue);
+    mLogic.SetUnitRange(DataModel::NullNullable);
+    mLogic.SetOverflow(OverflowEnum::kTopInside);
+
+    Structs::RangePercent100thsStruct::Type limitRange{
+        .min = static_cast<Percent100ths>(0),
+        .max = static_cast<Percent100ths>(10000)
+    };
+    mLogic.SetLimitRange(limitRange);
     return CHIP_NO_ERROR;
 }
 
