@@ -375,14 +375,6 @@ void ClosureManager::HandleMotionAction()
                                                                                           ep3State.target.Value().position.Value());
   }
 
-  if (UpdateCurrentStateToNextPosition(ep3State, currentState))
-  {
-    instance.ep3.GetLogic().SetCurrentState(currentState);
-    isEndPoint3ProgressPossible = (currentState.Value().position.Value() != ep3State.target.Value().position.Value());
-    ChipLogError(AppServer, "EndPoint 3 Current Position: %d, Target Position: %d", currentState.Value().position.Value(), 
-                                                                                            ep3State.target.Value().position.Value());
-  }
-
   bool progressPossible = isEndpoint2ProgressPossible || isEndpoint3ProgressPossible;
 
   ChipLogError(AppServer, "Progress Possible: %s", progressPossible ? "true" : "false");
