@@ -122,9 +122,11 @@ CHIP_ERROR ClusterLogic::SetTarget(const DataModel::Nullable<GenericTargetStruct
 
     if (!incomingTarget.IsNull())
     {
+        ChipLogError(AppServer, "In SetTarget 1");
         // Validate the incoming Position value has valid input parameters and FeatureMap conformance.
         if (incomingTarget.Value().position.HasValue())
         {
+            ChipLogError(AppServer, "In SetTarget 2");
             //  If the position member is present in the incoming Target, we need to check if the Positioning
             //  feature is supported by the closure. If the Positioning feature is not supported, return an error.
             VerifyOrReturnError(mConformance.HasFeature(Feature::kPositioning), CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE);
@@ -144,6 +146,7 @@ CHIP_ERROR ClusterLogic::SetTarget(const DataModel::Nullable<GenericTargetStruct
             //  If the latching member is present in the incoming Target, we need to check if the MotionLatching
             //  feature is supported by the closure. If the MotionLatching feature is not supported, return an error.
             VerifyOrReturnError(mConformance.HasFeature(Feature::kMotionLatching), CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE);
+            ChipLogError(AppServer, "In SetTarget 5");
         }
         // Validate the incoming Speed value has valid input parameters and FeatureMap conformance.
         if (incomingTarget.Value().speed.HasValue())
@@ -155,6 +158,7 @@ CHIP_ERROR ClusterLogic::SetTarget(const DataModel::Nullable<GenericTargetStruct
             VerifyOrReturnError(EnsureKnownEnumValue(incomingTarget.Value().speed.Value()) !=
                                     Globals::ThreeLevelAutoEnum::kUnknownEnumValue,
                                 CHIP_ERROR_INVALID_ARGUMENT);
+            ChipLogError(AppServer, "In SetTarget 7");
         }
     }
 

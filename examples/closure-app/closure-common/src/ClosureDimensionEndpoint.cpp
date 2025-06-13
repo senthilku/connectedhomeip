@@ -156,23 +156,41 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
     }
     case ClosureManager::Action_t::MOVE_TO_ACTION:
     {
+<<<<<<< HEAD
         // ChipLogError(AppServer, "####### CLDM IN MOVE_TO_ACTION ############");
         UpdateCurrentStateFromTarget();
         // ChipLogError(AppServer, "####### CLDM MOVE_TO_ACTION done ############");
+=======
+        ChipLogError(AppServer, "####### CLDM IN MOVE_TO_ACTION ############");
+        UpdateCurrentStateFromTarget();
+        ChipLogError(AppServer, "####### CLDM MOVE_TO_ACTION done ############");
+>>>>>>> 9b486365eb (Set target and step target)
         break;
     }
     case ClosureManager::Action_t::SET_TARGET_ACTION:
     {
+<<<<<<< HEAD
         // ChipLogError(AppServer, "####### CLDM IN SET_TARGET_ACTION ############");
         UpdateCurrentStateFromTarget();
         // ChipLogError(AppServer, "####### CLDM SET_TARGET_ACTION done ############");
+=======
+        ChipLogError(AppServer, "####### CLDM IN SET_TARGET_ACTION ############");
+        UpdateCurrentStateFromTarget();
+        ChipLogError(AppServer, "####### CLDM SET_TARGET_ACTION done ############");
+>>>>>>> 9b486365eb (Set target and step target)
         break;
     }
     case ClosureManager::Action_t::STEP_ACTION:
     {
+<<<<<<< HEAD
         // ChipLogError(AppServer, "####### CLDM IN STEP_ACTION ############");
         UpdateCurrentStateFromTarget();
         // ChipLogError(AppServer, "####### CLDM STEP_ACTION done ############");
+=======
+        ChipLogError(AppServer, "####### CLDM IN STEP_ACTION ############");
+        UpdateCurrentStateFromTarget();
+        ChipLogError(AppServer, "####### CLDM STEP_ACTION done ############");
+>>>>>>> 9b486365eb (Set target and step target)
         break;
     }
     default:
