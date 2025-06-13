@@ -52,15 +52,7 @@ constexpr uint8_t kNamespaceClosurePanel = 0x45;
 constexpr uint8_t kTagClosurePanelLift   = 0x00;
 constexpr uint8_t kTagClosurePanelTilt   = 0x01;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 ClosureManager::Action_t mCurrentAction = ClosureManager::Action_t::INVALID_ACTION;
-=======
-Action_t mCurrentAction = Action_t::INVALID_ACTION;
->>>>>>> 98faac7faa (Code optimization for commands)
-=======
-ClosureManager::Action_t mCurrentAction = ClosureManager::Action_t::INVALID_ACTION;
->>>>>>> 9b486365eb (Set target and step target)
 
 // Define the list of semantic tags for the endpoint
 const Clusters::Descriptor::Structs::SemanticTagStruct::Type kEp1TagList[] = {
@@ -673,22 +665,14 @@ chip::Protocols::InteractionModel::Status ClosureManager::OnSetTargetCommand(con
 
   if (latch.HasValue())
   {
-<<<<<<< HEAD
     // ChipLogError(AppServer, "Updating target latch for SetTarget command");
-=======
-    ChipLogError(AppServer, "Updating target latch for SetTarget command");
->>>>>>> 9b486365eb (Set target and step target)
     target.Value().latch = MakeOptional(latch.Value());
   }
 
   if (speed.HasValue())
   {
-<<<<<<< HEAD
-    // ChipLogError(AppServer, "Updating target speed for SetTarget command");
-=======
-    ChipLogError(AppServer, "Updating target speed for SetTarget command");
->>>>>>> 9b486365eb (Set target and step target)
     target.Value().speed = MakeOptional(speed.Value());
+    // ChipLogError(AppServer, "Updating target speed for SetTarget command");
   }
 
   VerifyOrReturnValue(ep1.GetLogic().SetOverallTarget(target) == CHIP_NO_ERROR, Status::Failure, 
