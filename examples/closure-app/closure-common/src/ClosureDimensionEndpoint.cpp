@@ -32,15 +32,16 @@ Status PrintOnlyDelegate::HandleSetTarget(const Optional<Percent100ths> & pos, c
 {
     ChipLogProgress(AppServer, "HandleSetTarget");
     // Add the SetTarget handling logic here
-    return Status::Success;
+    return ClosureManager::GetInstance().OnSetTargetCommand(pos, latch, speed, PrintOnlyDelegate::GetEndpoint());
 }
 
 Status PrintOnlyDelegate::HandleStep(const StepDirectionEnum & direction, const uint16_t & numberOfSteps,
                                      const Optional<Globals::ThreeLevelAutoEnum> & speed)
 {
     ChipLogProgress(AppServer, "HandleStep");
+    PrintOnlyDelegate::SetTargetDirection(direction);
     // Add the Step handling logic here
-    return Status::Success;
+    return ClosureManager::GetInstance().OnStepCommand(direction, numberOfSteps, speed, PrintOnlyDelegate::GetEndpoint());
 }
 
 CHIP_ERROR ClosureDimensionEndpoint::Init()
@@ -94,7 +95,7 @@ CHIP_ERROR ClosureDimensionEndpoint::SetInitialState()
 
 void ClosureDimensionEndpoint::OnActionComplete(uint8_t action) 
 {
-    ChipLogError(AppServer, "####### CLDM IN ActionComplete 0############");
+    // ChipLogError(AppServer, "####### CLDM IN ActionComplete 0############");
     ClosureManager::Action_t closureAction = static_cast<ClosureManager::Action_t>(action);
 
     if (closureAction == ClosureManager::Action_t::INVALID_ACTION)
@@ -108,7 +109,7 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
     {
     case ClosureManager::Action_t::STOP_MOTION_ACTION:
     {
-        ChipLogError(AppServer, "####### CLDM IN STOP_ACTION ############");
+        // ChipLogError(AppServer, "####### CLDM IN STOP_ACTION ############");
         ClusterState state = mLogic.GetState();
 
         if (state.currentState.IsNull())
@@ -131,17 +132,17 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
                     );
         mLogic.SetTarget(DataModel::MakeNullable(target));
 
-        ChipLogError(AppServer, "####### CLDM STOP_ACTION done ############");
+        // ChipLogError(AppServer, "####### CLDM STOP_ACTION done ############");
         break;
     }
     case ClosureManager::Action_t::STOP_CALIBRATE_ACTION:
     {
-        ChipLogError(AppServer, "####### CLDM IN STOP_CALIBRATE_ACTION ############");
+        // ChipLogError(AppServer, "####### CLDM IN STOP_CALIBRATE_ACTION ############");
         break;
     }
     case ClosureManager::Action_t::CALIBRATE_ACTION:
     {
-        ChipLogError(AppServer, "####### CLDM IN CALIBRATE_ACTION ############");
+        // ChipLogError(AppServer, "####### CLDM IN CALIBRATE_ACTION ############");
         DataModel::Nullable<GenericCurrentStateStruct> currentState(
             GenericCurrentStateStruct(MakeOptional(10000),
                                       MakeOptional(true),
@@ -150,12 +151,37 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
 
         mLogic.SetCurrentState(currentState);
         mLogic.SetTarget(target);
-        mLogic.SetTarget(target);
-        ChipLogError(AppServer, "####### CLDM CALIBRATE_ACTION done ############");
+        // ChipLogError(AppServer, "####### CLDM CALIBRATE_ACTION done ############");
         break;
     }
     case ClosureManager::Action_t::MOVE_TO_ACTION:
     {
+        // ChipLogError(AppServer, "####### CLDM IN MOVE_TO_ACTION ############");
+        UpdateCurrentStateFromTarget();
+        // ChipLogError(AppServer, "####### CLDM MOVE_TO_ACTION done ############");
+        break;
+    }
+    case ClosureManager::Action_t::SET_TARGET_ACTION:
+    {
+        // ChipLogError(AppServer, "####### CLDM IN SET_TARGET_ACTION ############");
+        UpdateCurrentStateFromTarget();
+        // ChipLogError(AppServer, "####### CLDM SET_TARGET_ACTION done ############");
+        break;
+    }
+    case ClosureManager::Action_t::STEP_ACTION:
+    {
+        // ChipLogError(AppServer, "####### CLDM IN STEP_ACTION ############");
+        UpdateCurrentStateFromTarget();
+        // ChipLogError(AppServer, "####### CLDM STEP_ACTION done ############");
+        break;
+    }
+    default:
+        ChipLogError(AppServer, "Invalid action received in OnActionComplete");
+        return;
+    }
+}
+
+void ClosureDimensionEndpoint::UpdateCurrentStateFromTarget() {
         ClusterState state = mLogic.GetState();
         GenericCurrentStateStruct currentState;
 
@@ -194,11 +220,5 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
         }
 
         mLogic.SetCurrentState(DataModel::MakeNullable(currentState));
-        ChipLogError(AppServer, "####### CLDM IN MOVE_TO_ACTION ############");
-        break;
-    }
-    default:
-        ChipLogError(AppServer, "Invalid action received in OnActionComplete");
-        return;
-    }
+        // ChipLogError(AppServer, "####### CLDM IN MOVE_TO_ACTION ############");
 }

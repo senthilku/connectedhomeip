@@ -56,7 +56,7 @@ enum class ClosureControlTestEventTrigger : uint64_t
 
 Status PrintOnlyDelegate::HandleCalibrateCommand(DataModel::Nullable<ElapsedS> & countdownTime)
 {
-    ChipLogError(AppServer, "###########HandleCalibrateCommand###############");
+    // ChipLogError(AppServer, "###########HandleCalibrateCommand###############");
     return ClosureManager::GetInstance().OnCalibrateCommand(countdownTime);
     return Status::Success;
 }
@@ -65,13 +65,13 @@ Status PrintOnlyDelegate::HandleMoveToCommand(const Optional<TargetPositionEnum>
                                               const Optional<Globals::ThreeLevelAutoEnum> & speed,
                                               DataModel::Nullable<ElapsedS> & countdownTime)
 {
-    ChipLogProgress(AppServer, "###########HandleMoveToCommand###############");
+    // ChipLogProgress(AppServer, "###########HandleMoveToCommand###############");
     return ClosureManager::GetInstance().OnMoveToCommand(position, latch, speed, countdownTime);
 }
 
 Status PrintOnlyDelegate::HandleStopCommand()
 {
-    ChipLogProgress(AppServer, "###########HandleStopCommand###############");
+    // ChipLogProgress(AppServer, "###########HandleStopCommand###############");
     return ClosureManager::GetInstance().OnStopCommand();
 }
 
@@ -211,6 +211,55 @@ void ClosureControlEndpoint::OnActionComplete(uint8_t action)
     case ClosureManager::Action_t::MOVE_TO_ACTION:
         HandleMoveToAction();
         break;
+    case ClosureManager::Action_t::SET_TARGET_ACTION:
+        {
+        ChipLogError(AppServer, "####### CLDM IN SET_TARGET_ACTION ############");
+        
+        ClusterState clusterState = mLogic.GetState();
+
+        auto overallState = clusterState.mOverallState;
+
+        overallState.SetNonNull().Set(
+        MakeOptional(MakeNullable(PositioningEnum::kPartiallyOpened)),
+        clusterState.mOverallTarget.Value().latch.HasValue()
+            ? MakeOptional(MakeNullable(clusterState.mOverallTarget.Value().latch.Value()))
+            : NullOptional,
+        clusterState.mOverallTarget.Value().speed.HasValue()
+            ? MakeOptional(MakeNullable(clusterState.mOverallTarget.Value().speed.Value()))
+            : NullOptional,
+        clusterState.mOverallState.Value().secureState.HasValue()
+            ? MakeOptional(MakeNullable(clusterState.mOverallState.Value().secureState.Value().Value()))
+            : NullOptional
+        );
+
+        mLogic.SetOverallState(overallState);
+        break;
+    }
+
+    case ClosureManager::Action_t::STEP_ACTION:
+    {
+        // ChipLogError(AppServer, "####### CLDM IN STEP_ACTION ############");
+        
+        ClusterState clusterState = mLogic.GetState();
+
+        auto overallState = clusterState.mOverallState;
+
+        overallState.SetNonNull().Set(
+        MakeOptional(MakeNullable(PositioningEnum::kPartiallyOpened)),
+        clusterState.mOverallTarget.Value().latch.HasValue()
+            ? MakeOptional(MakeNullable(clusterState.mOverallTarget.Value().latch.Value()))
+            : NullOptional,
+        clusterState.mOverallTarget.Value().speed.HasValue()
+            ? MakeOptional(MakeNullable(clusterState.mOverallTarget.Value().speed.Value()))
+            : NullOptional,
+        clusterState.mOverallState.Value().secureState.HasValue()
+            ? MakeOptional(MakeNullable(clusterState.mOverallState.Value().secureState.Value().Value()))
+            : NullOptional
+        );
+
+        mLogic.SetOverallState(overallState);
+        break;
+    }
     default:
         ChipLogError(AppServer, "Invalid action received in OnActionComplete");
     }
@@ -218,7 +267,7 @@ void ClosureControlEndpoint::OnActionComplete(uint8_t action)
 
 void ClosureControlEndpoint::HandleStopCalibrateAction()
 {
-    ChipLogError(AppServer, "#######In STOP_CALIBRATE_ACTION ############");
+    // ChipLogError(AppServer, "#######In STOP_CALIBRATE_ACTION ############");
     mLogic.SetMainState(MainStateEnum::kStopped);
 
     mLogic.SetCountdownTimeFromDelegate(0);
@@ -227,7 +276,7 @@ void ClosureControlEndpoint::HandleStopCalibrateAction()
 
 void ClosureControlEndpoint::HandleStopMotionAction()
 {
-    ChipLogError(AppServer, "#######In STOP_MOTION_ACTION ############");
+    // ChipLogError(AppServer, "#######In STOP_MOTION_ACTION ############");
     mLogic.SetMainState(MainStateEnum::kStopped);
     ClusterState clusterState = mLogic.GetState();
 
@@ -263,7 +312,7 @@ void ClosureControlEndpoint::HandleStopMotionAction()
 
 void ClosureControlEndpoint::HandleCalibrateAction()
 {
-    ChipLogError(AppServer, "#######In CALIBRATE_ACTION ############");
+    // ChipLogError(AppServer, "#######In CALIBRATE_ACTION ############");
 
     DataModel::Nullable<GenericOverallState> overallState(
     GenericOverallState(MakeOptional(DataModel::MakeNullable(PositioningEnum::kFullyClosed)),
@@ -278,12 +327,12 @@ void ClosureControlEndpoint::HandleCalibrateAction()
     mLogic.SetCountdownTimeFromDelegate(0);
     mLogic.GenerateMovementCompletedEvent();
 
-    ChipLogError(AppServer, "####### CALIBRATE_ACTION done ############");
+    // ChipLogError(AppServer, "####### CALIBRATE_ACTION done ############");
 }
 
 void ClosureControlEndpoint::HandleMoveToAction()
 {
-    ChipLogError(AppServer, "#######In MOVE_TO_ACTION ############");
+    // ChipLogError(AppServer, "#######In MOVE_TO_ACTION ############");
     ClusterState clusterState = mLogic.GetState();
 
     // Helper function to map TargetPositionEnum to PositioningEnum
@@ -334,5 +383,5 @@ void ClosureControlEndpoint::HandleMoveToAction()
     mLogic.SetCountdownTimeFromDelegate(0);
     mLogic.GenerateMovementCompletedEvent();
 
-    ChipLogError(AppServer, "####### MOVE_TO_ACTION done ############");
+    // ChipLogError(AppServer, "####### MOVE_TO_ACTION done ############");
 }

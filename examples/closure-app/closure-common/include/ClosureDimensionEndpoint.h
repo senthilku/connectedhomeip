@@ -48,7 +48,7 @@ using Protocols::InteractionModel::Status;
 class PrintOnlyDelegate : public DelegateBase
 {
 public:
-    PrintOnlyDelegate() {}
+    PrintOnlyDelegate(EndpointId endpoint) : mEndpoint(endpoint) {}
 
     // Override for the DelegateBase Virtual functions
     Status HandleSetTarget(const Optional<Percent100ths> & pos, const Optional<bool> & latch,
@@ -63,8 +63,22 @@ public:
 
     ClusterLogic * GetLogic() const { return mLogic; }
 
+    EndpointId GetEndpoint() const { return mEndpoint; }
+
+    /**
+     * @brief Function to get the target direction of the cluster.
+     */
+    StepDirectionEnum GetTargetDirection() const { return mTargetDirection; }
+
+    /**
+     * @brief Function to set the target direction of the cluster.
+     */
+    void SetTargetDirection(StepDirectionEnum direction) { mTargetDirection = direction; }
+
 private:
     ClusterLogic * mLogic;
+    EndpointId mEndpoint = kInvalidEndpointId;
+    StepDirectionEnum mTargetDirection = StepDirectionEnum::kUnknownEnumValue;
 };
 
 /**
@@ -84,7 +98,7 @@ class ClosureDimensionEndpoint
 {
 public:
     ClosureDimensionEndpoint(EndpointId endpoint) :
-        mEndpoint(endpoint), mContext(mEndpoint), mDelegate(), mLogic(mDelegate, mContext), mInterface(mEndpoint, mLogic)
+        mEndpoint(endpoint), mContext(mEndpoint), mDelegate(endpoint), mLogic(mDelegate, mContext), mInterface(mEndpoint, mLogic)
     {}
 
     /**
@@ -111,6 +125,7 @@ public:
      */
     PrintOnlyDelegate & GetDelegate() { return mDelegate; }
     ClusterLogic & GetLogic() { return mLogic; }
+    EndpointId GetEndpoint() const { return mEndpoint; }
 
     void OnActionComplete(uint8_t action);
 
@@ -120,6 +135,8 @@ private:
     PrintOnlyDelegate mDelegate;
     ClusterLogic mLogic;
     Interface mInterface;
+
+    void UpdateCurrentStateFromTarget();
 };
 
 } // namespace ClosureDimension

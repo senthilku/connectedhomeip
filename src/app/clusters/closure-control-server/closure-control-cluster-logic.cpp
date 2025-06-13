@@ -201,7 +201,7 @@ CHIP_ERROR ClusterLogic::SetMainState(MainStateEnum mainState)
 
 CHIP_ERROR ClusterLogic::SetOverallState(const DataModel::Nullable<GenericOverallState> & overallState)
 {
-    ChipLogError(AppServer, "In SetOverallState");
+    // ChipLogError(AppServer, "In SetOverallState");
     assertChipStackLockedByCurrentThread();
 
     VerifyOrReturnError(mIsInitialized, CHIP_ERROR_INCORRECT_STATE);
@@ -263,14 +263,14 @@ CHIP_ERROR ClusterLogic::SetOverallState(const DataModel::Nullable<GenericOveral
     
     mState.mOverallState = overallState;
     mMatterContext.MarkDirty(Attributes::OverallState::Id);
-    ChipLogError(AppServer, "SetOverallState Done");
+    // ChipLogError(AppServer, "SetOverallState Done");
 
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ClusterLogic::SetOverallTarget(const DataModel::Nullable<GenericOverallTarget> & overallTarget)
 {
-    ChipLogError(AppServer, "In SetOverallTarget");
+    // ChipLogError(AppServer, "In SetOverallTarget");
     assertChipStackLockedByCurrentThread();
 
     VerifyOrReturnError(mIsInitialized, CHIP_ERROR_INCORRECT_STATE);
@@ -319,7 +319,7 @@ CHIP_ERROR ClusterLogic::SetOverallTarget(const DataModel::Nullable<GenericOvera
     mState.mOverallTarget = overallTarget;
     mMatterContext.MarkDirty(Attributes::OverallTarget::Id);
 
-    ChipLogError(AppServer, "SetOverallTarget Done");
+    // ChipLogError(AppServer, "SetOverallTarget Done");
     return CHIP_NO_ERROR;
 }
 
@@ -397,7 +397,7 @@ CHIP_ERROR ClusterLogic::GetFeatureMap(BitFlags<Feature> & featureMap)
 
 Protocols::InteractionModel::Status ClusterLogic::HandleStop()
 {
-    ChipLogError(AppServer, "In Stop Command");
+    // ChipLogError(AppServer, "In Stop Command");
     VerifyOrDieWithMsg(mIsInitialized, AppServer, "Stop Command called before Initialization of closure");
 
     // Stop command can only be supported if closure doesnt support instantaneous features
@@ -418,14 +418,14 @@ Protocols::InteractionModel::Status ClusterLogic::HandleStop()
                             ChipLogError(AppServer, "Stop Command: Failed to set MainState to Stopped"));
     }
 
-    ChipLogError(AppServer, "Stop Command Done");
+    // ChipLogError(AppServer, "Stop Command Done");
     return Status::Success;
 }
 
 Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPositionEnum> position, Optional<bool> latch,
                                                                Optional<Globals::ThreeLevelAutoEnum> speed)
 {
-    ChipLogError(AppServer, "In MoveTo Command");
+    // ChipLogError(AppServer, "In MoveTo Command");
     VerifyOrDieWithMsg(mIsInitialized, AppServer, "MoveTo Command called before Initialization of closure");
 
     VerifyOrReturnError(position.HasValue() || latch.HasValue() || speed.HasValue(), Status::InvalidCommand);
@@ -485,24 +485,22 @@ Protocols::InteractionModel::Status ClusterLogic::HandleMoveTo(Optional<TargetPo
     {
         VerifyOrReturnError(SetMainState(MainStateEnum::kMoving) == CHIP_NO_ERROR, Status::Failure,
                             ChipLogError(AppServer, "MoveTo Command: Failed to set MainState to Moving"));
-                                ChipLogError(AppServer, "MoveTo Command: 10");
     }
     else
     {
         VerifyOrReturnError(SetMainState(MainStateEnum::kWaitingForMotion) == CHIP_NO_ERROR, Status::Failure,
                             ChipLogError(AppServer, "MoveTo Command: Failed to set MainState to kWaitingForMotion"));
-                                ChipLogError(AppServer, "MoveTo Command: 11");
     }
 
     VerifyOrReturnError(SetOverallTarget(DataModel::MakeNullable(target)) == CHIP_NO_ERROR, Status::Failure);
     
-    ChipLogError(AppServer, "MoveTo Command: Done");
+    // ChipLogError(AppServer, "MoveTo Command: Done");
     return Status::Success;
 }
 
 Protocols::InteractionModel::Status ClusterLogic::HandleCalibrate()
 {
-    ChipLogError(AppServer, "In Calibrate Command");
+    // ChipLogError(AppServer, "In Calibrate Command");
     VerifyOrDieWithMsg(mIsInitialized, AppServer, "Calibrate Command called before Initialization of closure");
 
     VerifyOrReturnError(mConformance.HasFeature(Feature::kCalibration), Status::UnsupportedCommand);
@@ -527,7 +525,7 @@ Protocols::InteractionModel::Status ClusterLogic::HandleCalibrate()
     VerifyOrReturnError(SetMainState(MainStateEnum::kCalibrating) == CHIP_NO_ERROR, Status::Failure,
                         ChipLogError(AppServer, "Calibrate Command: Failed to set MainState to Calibrating"));
 
-    ChipLogError(AppServer, "Calibrate Command: Done");
+    // ChipLogError(AppServer, "Calibrate Command: Done");
     return Status::Success;
 }
 
