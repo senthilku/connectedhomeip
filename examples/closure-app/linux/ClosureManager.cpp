@@ -52,7 +52,11 @@ constexpr uint8_t kNamespaceClosurePanel = 0x45;
 constexpr uint8_t kTagClosurePanelLift   = 0x00;
 constexpr uint8_t kTagClosurePanelTilt   = 0x01;
 
+<<<<<<< HEAD
 ClosureManager::Action_t mCurrentAction = ClosureManager::Action_t::INVALID_ACTION;
+=======
+Action_t mCurrentAction = Action_t::INVALID_ACTION;
+>>>>>>> 98faac7faa (Code optimization for commands)
 
 // Define the list of semantic tags for the endpoint
 const Clusters::Descriptor::Structs::SemanticTagStruct::Type kEp1TagList[] = {
