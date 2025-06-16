@@ -733,6 +733,7 @@ void ClosureManager::HandleSetTargetAction(EndpointId endpointId)
     );
     ep->GetLogic().SetCurrentState(currentState);
     ChipLogError(AppServer, "Updated Current Speed to Target Speed: %d", static_cast<int>(targetSpeed));
+    epState = ep->GetLogic().GetState(); // Refresh the state after updating current speed
   }
 
   if(UpdateCurrentStateToNextPosition(epState, currentState))
@@ -813,6 +814,23 @@ void ClosureManager::HandleStepAction(EndpointId endpointId)
     ChipLogProgress(AppServer, "Target position reached");
     return ;
   }
+
+  // Update currentState speed with target speed if needed
+  Globals::ThreeLevelAutoEnum targetSpeed = epState.target.Value().speed.HasValue() ? epState.target.Value().speed.Value() : Globals::ThreeLevelAutoEnum::kAuto;
+  Globals::ThreeLevelAutoEnum currentSpeed = epState.currentState.Value().speed.HasValue() ? epState.currentState.Value().speed.Value() : Globals::ThreeLevelAutoEnum::kAuto;
+  ChipLogError(AppServer, "Target Speed: %d, Current Speed: %d", static_cast<int>(targetSpeed), static_cast<int>(currentSpeed));
+  // If the target speed is different from the current speed, update the current state with the target speed
+  if (targetSpeed != currentSpeed)
+  {
+    currentState.SetNonNull().Set(
+        epState.currentState.Value().position.HasValue() ? MakeOptional(epState.currentState.Value().position.Value()) : NullOptional,
+        epState.currentState.Value().latch.HasValue() ? MakeOptional(epState.currentState.Value().latch.Value()) : NullOptional,
+        MakeOptional(targetSpeed)
+    );
+    ep->GetLogic().SetCurrentState(currentState);
+    ChipLogError(AppServer, "Updated Current Speed to Target Speed: %d", static_cast<int>(targetSpeed));
+    epState = ep->GetLogic().GetState(); // Refresh the state after updating current speed
+  }
   
   chip::Percent100ths nextCurrentPosition;
   // Increment or decrement position by stepValue, capped at target.
@@ -846,7 +864,6 @@ void ClosureManager::HandleStepAction(EndpointId endpointId)
   else
   {
     instance.HandleClosureAction(ClosureManager::Action_t::STEP_ACTION);
-  }
   }
 
 }
