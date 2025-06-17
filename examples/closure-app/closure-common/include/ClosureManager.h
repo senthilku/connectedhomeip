@@ -78,14 +78,14 @@ public:
     chip::Protocols::InteractionModel::Status OnStopCommand();
 
     chip::Protocols::InteractionModel::Status OnSetTargetCommand(
-        const chip::Optional<chip::Percent100ths> & pos, 
+        // const chip::Optional<chip::Percent100ths> & pos, 
         const chip::Optional<bool> & latch, 
         const chip::Optional<chip::app::Clusters::Globals::ThreeLevelAutoEnum> & speed,
         chip::EndpointId endpointId);
 
     chip::Protocols::InteractionModel::Status OnStepCommand(
-        const chip::app::Clusters::ClosureDimension::StepDirectionEnum & direction, 
-        const uint16_t & numberOfSteps, 
+        // const chip::app::Clusters::ClosureDimension::StepDirectionEnum & direction, 
+        // const uint16_t & numberOfSteps, 
         const chip::Optional<chip::app::Clusters::Globals::ThreeLevelAutoEnum> & speed,
         chip::EndpointId endpointId);
     
@@ -109,7 +109,7 @@ private:
     static void HandleMoveToActionTimer(chip::System::Layer * layer, void * aAppState);
     static void HandleLatchActionTimer(chip::System::Layer * layer, void * aAppState);
     static void HandleSetTargetActionTimer(chip::System::Layer * layer, void * aAppState);
-    static void HandleStepCommandTimer(chip::System::Layer * systemLayer, void * aAppState);
+    static void HandleStepActionTimer(chip::System::Layer * layer, void * aAppState);
 
     void HandleClosureAction(ClosureManager::Action_t action);
     void HandleMotionAction();
@@ -119,5 +119,4 @@ private:
     bool isMoveToInProgress = false;
     bool isSetTargetInProgress = false;
     bool isStepActionInProgress = false;
-    chip::EndpointId mEndpointId = chip::kInvalidEndpointId;
 };
