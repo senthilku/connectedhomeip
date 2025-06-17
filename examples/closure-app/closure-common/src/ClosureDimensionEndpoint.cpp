@@ -93,6 +93,30 @@ CHIP_ERROR ClosureDimensionEndpoint::SetInitialState()
     return CHIP_NO_ERROR;
 }
 
+void ClosureDimensionEndpoint::UpdateTargetStateFromCurrent()
+{
+    ClusterState state = mLogic.GetState();
+
+    if (state.currentState.IsNull())
+    {
+        ChipLogError(AppServer, "Current state is null, cannot stop motion");
+        mLogic.SetTarget(DataModel::NullNullable);
+        return;
+    }
+
+    GenericTargetStruct target(state.currentState.Value().position.HasValue()
+            ? MakeOptional(state.currentState.Value().position.Value())
+            : NullOptional,
+            state.currentState.Value().latch.HasValue()
+            ? MakeOptional(state.currentState.Value().latch.Value())
+            : NullOptional,
+            state.currentState.Value().speed.HasValue()
+            ? MakeOptional(state.currentState.Value().speed.Value())
+            : NullOptional
+            );
+    mLogic.SetTarget(DataModel::MakeNullable(target));
+}
+
 void ClosureDimensionEndpoint::OnActionComplete(uint8_t action) 
 {
     // ChipLogError(AppServer, "####### CLDM IN ActionComplete 0############");
@@ -110,28 +134,8 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
     case ClosureManager::Action_t::STOP_MOTION_ACTION:
     {
         // ChipLogError(AppServer, "####### CLDM IN STOP_ACTION ############");
-        ClusterState state = mLogic.GetState();
-
-        if (state.currentState.IsNull())
-        {
-            ChipLogError(AppServer, "Current state is null, cannot stop motion");
-            mLogic.SetTarget(DataModel::NullNullable);
-            return;
-        }
-        
-
-        GenericTargetStruct target(state.currentState.Value().position.HasValue()
-                    ? MakeOptional(state.currentState.Value().position.Value())
-                    : NullOptional,
-                    state.currentState.Value().latch.HasValue()
-                    ? MakeOptional(state.currentState.Value().latch.Value())
-                    : NullOptional,
-                    state.currentState.Value().speed.HasValue()
-                    ? MakeOptional(state.currentState.Value().speed.Value())
-                    : NullOptional
-                    );
-        mLogic.SetTarget(DataModel::MakeNullable(target));
-
+        // Update the target position to current position
+        UpdateTargetStateFromCurrent();
         // ChipLogError(AppServer, "####### CLDM STOP_ACTION done ############");
         break;
     }
@@ -176,13 +180,15 @@ void ClosureDimensionEndpoint::OnActionComplete(uint8_t action)
     case ClosureManager::Action_t::STOP_SET_TARGET_ACTION:
     {
         // ChipLogError(AppServer, "####### CLDM IN STOP_SET_TARGET_ACTION ############");
-        // No specific action needed for STOP_SET_TARGET_ACTION completion, adding this for completeness
+        // Update the target position to current position
+        UpdateTargetStateFromCurrent();
         break;
     }
     case ClosureManager::Action_t::STOP_STEP_ACTION:
     {
         // ChipLogError(AppServer, "####### CLDM IN STOP_STEP_ACTION ############");
-        // No specific action needed for STOP_STEP_ACTION completion, adding this for completeness
+        // Update the target position to current position
+        UpdateTargetStateFromCurrent();
         break;
     }
     default:

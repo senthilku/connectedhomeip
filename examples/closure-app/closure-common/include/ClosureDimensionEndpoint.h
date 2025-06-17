@@ -137,6 +137,7 @@ private:
     Interface mInterface;
 
     void UpdateCurrentStateFromTarget();
+    void UpdateTargetStateFromCurrent();
 };
 
 } // namespace ClosureDimension

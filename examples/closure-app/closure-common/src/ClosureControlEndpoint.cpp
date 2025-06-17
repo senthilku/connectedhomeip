@@ -20,6 +20,7 @@
 #include <ClosureManager.h>
 #include <app-common/zap-generated/cluster-enums.h>
 #include <app-common/zap-generated/cluster-objects.h>
+#include <optional>
 #include <protocols/interaction_model/StatusCode.h>
 
 using namespace chip;
@@ -199,12 +200,6 @@ void ClosureControlEndpoint::OnActionComplete(uint8_t action)
 
     switch (closureAction)
     {
-    case ClosureManager::Action_t::STOP_MOTION_ACTION:
-        HandleStopMotionAction();
-        break;
-    case ClosureManager::Action_t::STOP_CALIBRATE_ACTION:
-        HandleStopCalibrateAction();
-        break;
     case ClosureManager::Action_t::CALIBRATE_ACTION:
         HandleCalibrateAction();
         break;
@@ -260,6 +255,14 @@ void ClosureControlEndpoint::OnActionComplete(uint8_t action)
         mLogic.SetOverallState(overallState);
         break;
     }
+    case ClosureManager::Action_t::STOP_CALIBRATE_ACTION:
+        HandleStopCalibrateAction();
+        break;
+    case ClosureManager::Action_t::STOP_MOTION_ACTION:
+    case ClosureManager::Action_t::STOP_SET_TARGET_ACTION:
+    case ClosureManager::Action_t::STOP_STEP_ACTION:
+        HandleStopMotionAction();
+        break;
     default:
         ChipLogError(AppServer, "Invalid action received in OnActionComplete");
     }
@@ -306,6 +309,16 @@ void ClosureControlEndpoint::HandleStopMotionAction()
         setOverallState(clusterState, GenericOverallState());
     }
 
+    auto overallTarget = clusterState.mOverallTarget;
+    if (!overallTarget.IsNull())
+    {
+        overallTarget.Value().position = NullOptional;
+    }
+    else
+    {
+        overallTarget.SetNonNull(GenericOverallTarget());
+    }
+    mLogic.SetOverallTarget(overallTarget);
     mLogic.SetCountdownTimeFromDelegate(0);
     mLogic.GenerateMovementCompletedEvent();
 }
