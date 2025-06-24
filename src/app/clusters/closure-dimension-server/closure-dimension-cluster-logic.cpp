@@ -64,24 +64,50 @@ CHIP_ERROR ClusterLogic::Init(const ClusterConformance & conformance, const Clus
 }
 
 // TODO: CurrentState should be QuietReporting.
-CHIP_ERROR ClusterLogic::SetCurrentState(const DataModel::Nullable<GenericDimensionStateStruct> & incomingCurrentState)
+CHIP_ERROR ClusterLogic::SetCurrentState(const DataModel::Nullable<GenericDimensionStateStruct> & incomingCurrentState,
+                                        const bool TargetReached)
 {
     assertChipStackLockedByCurrentThread();
 
     VerifyOrReturnError(mInitialized, CHIP_ERROR_INCORRECT_STATE);
     VerifyOrReturnError(mState.currentState != incomingCurrentState, CHIP_NO_ERROR);
+    
+    bool markDirty = false;
 
     if (!incomingCurrentState.IsNull())
     {
         // Validate the incoming Position value has valid input parameters and FeatureMap conformance.
-        if (incomingCurrentState.Value().position.HasValue() && !incomingCurrentState.Value().position.Value().IsNull())
+        if (incomingCurrentState.Value().position.HasValue())
         {
             //  If the position member is present in the incoming CurrentState, we need to check if the Positioning
             //  feature is supported by the closure. If the Positioning feature is not supported, return an error.
             VerifyOrReturnError(mConformance.HasFeature(Feature::kPositioning), CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE);
 
-            VerifyOrReturnError(incomingCurrentState.Value().position.Value().Value() <= kPercents100thsMaxValue,
+            if( !incomingCurrentState.Value().position.Value().IsNull() )
+            {
+                VerifyOrReturnError(incomingCurrentState.Value().position.Value().Value() <= kPercents100thsMaxValue,
                                 CHIP_ERROR_INVALID_ARGUMENT);
+            }
+
+            auto now       = System::SystemClock().GetMonotonicTimestamp();
+            
+            if (TargetReached)
+            {
+                // if target position is reached, we need to report the current state.
+                auto predicate = [](const decltype(quietReportableCurrentStatePosition)::SufficientChangePredicateCandidate &) -> bool {
+                    return true;
+                };
+                markDirty = (quietReportableCurrentStatePosition.SetValue(incomingCurrentState.Value().position.Value(), now, predicate) 
+                                == AttributeDirtyState::kMustReport);
+            }
+            else
+            {   
+                // During transitions, reports should be once per 5 seconds
+                System::Clock::Milliseconds64 reportInterval = System::Clock::Milliseconds64(5000);
+                auto predicate = quietReportableCurrentStatePosition.GetPredicateForSufficientTimeSinceLastDirty(reportInterval);
+                markDirty = (quietReportableCurrentStatePosition.SetValue(incomingCurrentState.Value().position.Value(), now, predicate) 
+                                == AttributeDirtyState::kMustReport);
+            }
         }
 
         // Validate the incoming latch value has valid FeatureMap conformance.
@@ -90,6 +116,12 @@ CHIP_ERROR ClusterLogic::SetCurrentState(const DataModel::Nullable<GenericDimens
             //  If the latching member is present in the incoming CurrentState, we need to check if the MotionLatching
             //  feature is supported by the closure. If the MotionLatching feature is not supported, return an error.
             VerifyOrReturnError(mConformance.HasFeature(Feature::kMotionLatching), CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE);
+
+            // Changes to this attribute SHALL only be marked as reportable when latch changes.
+            if (mState.currentState.Value().latch != incomingCurrentState.Value().latch)
+            {
+                markDirty = true;
+            }
         }
 
         // Validate the incoming Speed value has valid input parameters and FeatureMap conformance.
@@ -102,12 +134,20 @@ CHIP_ERROR ClusterLogic::SetCurrentState(const DataModel::Nullable<GenericDimens
             VerifyOrReturnError(EnsureKnownEnumValue(incomingCurrentState.Value().speed.Value()) !=
                                     Globals::ThreeLevelAutoEnum::kUnknownEnumValue,
                                 CHIP_ERROR_INVALID_ARGUMENT);
+
+            // Changes to this attribute SHALL only be marked as reportable when speed changes.
+            if (mState.currentState.Value().speed != incomingCurrentState.Value().speed)
+            {
+                markDirty = true;
+            }
         }
     }
 
     mState.currentState = incomingCurrentState;
-    mMatterContext.MarkDirty(Attributes::CurrentState::Id);
-
+    if (markDirty)
+    {
+        mMatterContext.MarkDirty(Attributes::CurrentState::Id);
+    }
     return CHIP_NO_ERROR;
 }
 

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <app/cluster-building-blocks/QuieterReporting.h>
 #include "closure-dimension-cluster-objects.h"
 #include "closure-dimension-delegate.h"
 #include "closure-dimension-matter-context.h"
@@ -189,7 +190,7 @@ public:
      *         CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE if feature is not supported.
      *         CHIP_ERROR_INVALID_ARGUMENT if argument are not valid
      */
-    CHIP_ERROR SetCurrentState(const DataModel::Nullable<GenericDimensionStateStruct> & currentState);
+    CHIP_ERROR SetCurrentState(const DataModel::Nullable<GenericDimensionStateStruct> & currentState, const bool targetReached = false);
 
     /**
      * @brief Set TargetState.
@@ -387,6 +388,8 @@ private:
     ClusterConformance mConformance;
     DelegateBase & mDelegate;
     MatterContext & mMatterContext;
+
+    QuieterReportingAttribute<Percent100ths> quietReportableCurrentStatePosition{ DataModel::NullNullable };
 };
 
 } // namespace ClosureDimension
