@@ -143,18 +143,13 @@ private:
     chip::app::Clusters::ClosureDimension::ClosureDimensionEndpoint mClosurePanelEndpoint3{ kClosurePanelEndpoint3 };
 
     /**
-     * @brief Stores the current endpoint ID being managed or operated on.
-     *
-     * Initialized to an invalid endpoint ID and updated as needed during operations.
-     */
-    chip::EndpointId mCurrentEndpointId = chip::kInvalidEndpointId;
-
-    /**
      * @brief Tracks the current action being performed by the ClosureManager.
      *
      * Initialized to an invalid action and updated as needed during operations.
      */
-    ClosureAction mCurrentAction = ClosureAction::kInvalidAction;
+    ClosureAction mEp1CurrentAction = ClosureAction::kInvalidAction;
+    ClosureAction mEp2CurrentAction = ClosureAction::kInvalidAction;
+    ClosureAction mEp3CurrentAction = ClosureAction::kInvalidAction;
 
     /**
      * @brief Timer callback handler for closure actions.
@@ -165,7 +160,9 @@ private:
      * @param layer Pointer to the system layer that triggered the timer.
      * @param aAppState Application-specific state or context passed to the timer.
      */
-    static void HandleClosureActionTimer(chip::System::Layer * layer, void * aAppState);
+    static void HandleEp1ClosureActionTimer(chip::System::Layer * layer, void * aAppState);
+    static void HandleEp2ClosureActionTimer(chip::System::Layer * layer, void * aAppState);
+    static void HandleEp3ClosureActionTimer(chip::System::Layer * layer, void * aAppState);
 
     /**
      * @brief Handles the motion action for the closure system.
@@ -263,7 +260,7 @@ private:
      *
      * @param action The action that has been completed.
      */
-    void HandlePanelSetTargetActionComplete();
+    void HandlePanelSetTargetActionComplete(chip::EndpointId endpointId);
 
     /**
      * @brief Handles the completion of a Step action.
@@ -273,11 +270,10 @@ private:
      *
      * @param action The action that has been completed.
      */
-    void HandlePanelStepActionComplete();
+    void HandlePanelStepActionComplete(chip::EndpointId endpointId);
 
-    bool mIsCalibrationActionInProgress       = false;
-    bool mIsMoveToActionInProgress            = false;
-    bool mIsSetTargetActionInProgress         = false;
-    bool mIsStepActionInProgress              = false;
-    chip::EndpointId mCurrentActionEndpointId = chip::kInvalidEndpointId;
+    bool mIsCalibrationActionInProgress = false;
+    bool mEp1MotionInProgress            = false;
+    bool mEp2MotionInProgress            = false;
+    bool mEp3MotionInProgress            = false;
 };
