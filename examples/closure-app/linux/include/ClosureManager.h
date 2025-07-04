@@ -130,6 +130,8 @@ private:
      * Used to provide global access to the ClosureManager throughout the application.
      */
     static ClosureManager sInstance;
+    ClosureManager::ClosureAction mCurrentAction = ClosureManager::ClosureAction::kInvalidAction;
+    chip::EndpointId mCurrentActionEndpointId = chip::kInvalidEndpointId;
 
     // Endpoint ID for the main closure device
     static constexpr chip::EndpointId kClosureEndpoint1 = 1;
