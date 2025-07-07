@@ -23,6 +23,7 @@
 #include "closure-dimension-cluster-objects.h"
 #include "closure-dimension-delegate.h"
 #include "closure-dimension-matter-context.h"
+#include <app/clusters/closure-control-server/closure-control-cluster-state-provider.h>
 #include <app/cluster-building-blocks/QuieterReporting.h>
 
 namespace chip {
@@ -337,6 +338,19 @@ public:
     Protocols::InteractionModel::Status HandleStepCommand(StepDirectionEnum direction, uint16_t numberOfSteps,
                                                           Optional<Globals::ThreeLevelAutoEnum> speed);
 
+
+    void SetClosureControlStateProvider(chip::app::Clusters::ClosureControl::ClosureControlClusterStateProvider * provider) 
+    {
+        mClosureControlStateProvider = provider;
+    }
+
+    // Helper to check if main state is stopped
+    bool IsClosureControlMainStateStopped()
+    {
+        ChipLogError(AppServer," Checking if main state is stopped in ClosureControlClusterLogic");
+        return (mClosureControlStateProvider != nullptr) && mClosureControlStateProvider->IsMainStateStopped();
+    }
+
 private:
     /**
      * @brief Set TranslationDirection.
@@ -393,6 +407,8 @@ private:
     // So, this variable will be used for Quietreporting of current state position.
     // TODO: Refactor CurrentState Atrribute to use QuieterReportingAttribute once Issue#39801 is resolved
     QuieterReportingAttribute<Percent100ths> quietReportableCurrentStatePosition{ DataModel::NullNullable };
+
+    chip::app::Clusters::ClosureControl::ClosureControlClusterStateProvider *mClosureControlStateProvider = nullptr;
 };
 
 } // namespace ClosureDimension

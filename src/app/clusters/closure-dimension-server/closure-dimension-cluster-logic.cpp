@@ -482,6 +482,13 @@ CHIP_ERROR ClusterLogic::SetLatchControlModes(const BitFlags<LatchControlModesBi
 CHIP_ERROR ClusterLogic::GetCurrentState(DataModel::Nullable<GenericDimensionStateStruct> & currentState)
 {
     VerifyOrReturnError(mInitialized, CHIP_ERROR_INCORRECT_STATE);
+
+    if (IsClosureControlMainStateStopped()) {
+        ChipLogError(AppServer, "Checking if main state is stopped in ClosureControlClusterLogic");
+    } else {
+        ChipLogError(AppServer, "Checking if main state is not stopped in ClosureControlClusterLogic");
+    }
+
     currentState = mState.currentState;
     return CHIP_NO_ERROR;
 }

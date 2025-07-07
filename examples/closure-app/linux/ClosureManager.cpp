@@ -94,6 +94,9 @@ void ClosureManager::Init()
     SetTagList(/* endpoint= */ kClosurePanelEndpoint3,
                Span<const Clusters::Descriptor::Structs::SemanticTagStruct::Type>(kClosurePanelEndpoint3TagList));
 
+    mClosurePanelEndpoint2.GetLogic().SetClosureControlStateProvider(&mClosureEndpoint1.GetLogic());
+    mClosurePanelEndpoint3.GetLogic().SetClosureControlStateProvider(&mClosureEndpoint1.GetLogic());
+
     // Set Initial state for Closure endpoints
     VerifyOrDie(SetClosureControlInitialState(mClosureEndpoint1) == CHIP_NO_ERROR);
     ChipLogProgress(AppServer, "Initial state for Closure Control Endpoint set successfully");

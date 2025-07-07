@@ -99,6 +99,8 @@ void ClosureManager::Init()
     mClosureEndpoint1.Init();
     mClosurePanelEndpoint2.Init();
     mClosurePanelEndpoint3.Init();
+    mClosurePanelEndpoint2.GetLogic().SetClosureControlStateProvider(&mClosureEndpoint1.GetLogic());
+    mClosurePanelEndpoint3.GetLogic().SetClosureControlStateProvider(&mClosureEndpoint1.GetLogic());
 
     // Set Taglist for Closure endpoints
     SetTagList(/* endpoint= */ 1, Span<const Clusters::Descriptor::Structs::SemanticTagStruct::Type>(kEndpoint1TagList));

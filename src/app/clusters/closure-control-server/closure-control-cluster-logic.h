@@ -25,6 +25,7 @@
 #include <app/clusters/closure-control-server/closure-control-cluster-delegate.h>
 #include <app/clusters/closure-control-server/closure-control-cluster-matter-context.h>
 #include <app/clusters/closure-control-server/closure-control-cluster-objects.h>
+#include <app/clusters/closure-control-server/closure-control-cluster-state-provider.h>
 #include <lib/core/CHIPError.h>
 #include <lib/support/BitFlags.h>
 #include <lib/support/logging/CHIPLogging.h>
@@ -140,7 +141,7 @@ struct ClusterInitParameters
  * @brief Class containing the cluster business logic
  *
  */
-class ClusterLogic
+class ClusterLogic : public ClosureControlClusterStateProvider
 {
 public:
     // Instantiates a ClusterLogic class. The caller maintains ownership of the driver and the context, but provides them for use by
@@ -151,6 +152,11 @@ public:
 
     const ClusterConformance & GetConformance() const { return mConformance; }
     const ClusterState & GetState() const { return mState; }
+
+    bool IsMainStateStopped() const override
+    {
+        return mState.mMainState == MainStateEnum::kStopped;
+    }
 
     /**
      * @brief Initializes the cluster logic
